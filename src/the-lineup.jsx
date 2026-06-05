@@ -94,6 +94,8 @@ const T = {
     ],
     themeToggle: { dark: "🌙 Dark", light: "☀️ Light" },
     howToPlayBtn: "How to Play",
+    donateBtn: "☕ Buy me a coffee",
+    donateMsg: "Enjoying the game? Support it!",
     htp: {
       title: "How to Play",
       close: "✕ Close",
@@ -233,6 +235,8 @@ const T = {
     ],
     themeToggle: { dark: "🌙 Sombre", light: "☀️ Clair" },
     howToPlayBtn: "Comment jouer",
+    donateBtn: "☕ Offre-moi un café",
+    donateMsg: "Le jeu te plaît ? Soutiens-le !",
     htp: {
       title: "Comment jouer",
       close: "✕ Fermer",
@@ -372,6 +376,8 @@ const T = {
     ],
     themeToggle: { dark: "🌙 Oscuro", light: "☀️ Claro" },
     howToPlayBtn: "Cómo jugar",
+    donateBtn: "☕ Invítame un café",
+    donateMsg: "¿Disfrutando el juego? ¡Apóyalo!",
     htp: {
       title: "Cómo jugar",
       close: "✕ Cerrar",
@@ -754,7 +760,7 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp }) {
       </div>
 
       {/* Body */}
-      <div style={{padding:"32px 20px 40px",maxWidth:480,margin:"0 auto"}}>
+      <div style={{padding:"32px 20px 80px",maxWidth:480,margin:"0 auto"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:56,marginBottom:8}}>⚾</div>
           <div style={{fontSize:28,fontWeight:700,lineHeight:1.2,marginBottom:10}}>
@@ -931,7 +937,7 @@ function DraftPhase({ mode, lang, setLang, theme, setTheme, showHtp, onComplete 
       </div>
 
       {/* Player cards — 2-column grid, scrollable */}
-      <div style={{padding:"12px 12px 32px",overflowY:"auto"}}>
+      <div style={{padding:"12px 12px 80px",overflowY:"auto"}}>
         {!options ? (
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",
             justifyContent:"center",padding:"60px 0",gap:12}}>
@@ -1042,7 +1048,7 @@ function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, onC
       </div>
       <div style={{height:3, background:"#dc2626"}}/>
 
-      <div style={{padding:"14px 12px 100px"}}>
+      <div style={{padding:"14px 12px 110px"}}>
 
         {/* Instruction banner */}
         <div style={{
@@ -1200,7 +1206,7 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
         </div>
       </div>
 
-      <div style={{padding:"20px 14px 40px"}}>
+      <div style={{padding:"20px 14px 80px"}}>
         {/* Win/Loss hero */}
         <div style={{textAlign:"center",marginBottom:20}}>
           <div style={{fontSize:11,letterSpacing:3,color:th.textDim,marginBottom:6}}>
@@ -1341,6 +1347,50 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
           width:"100%",fontSize:16,padding:"16px",borderRadius:12,marginTop:24,
         }}>{t.playAgain}</button>
       </div>
+    </div>
+  );
+}
+
+// ── Donate bar — fixed bottom, visible on all screens ────────────────────────
+function DonateBar({ t, th }) {
+  const [visible, setVisible] = React.useState(true);
+  if (!visible) return null;
+  return (
+    <div style={{
+      position:"fixed", bottom:0, left:0, right:0, zIndex:200,
+      background: th.bg === "#0a0e17"
+        ? "rgba(10,14,23,0.97)"
+        : "rgba(241,245,249,0.97)",
+      backdropFilter:"blur(12px)",
+      borderTop:`1px solid rgba(220,38,38,0.25)`,
+      padding:"10px 16px",
+      paddingBottom:"calc(10px + env(safe-area-inset-bottom))",
+      display:"flex", alignItems:"center", gap:10,
+    }}>
+      {/* Message */}
+      <div style={{flex:1, minWidth:0}}>
+        <div style={{fontSize:12, color:th.textMuted, whiteSpace:"nowrap",
+          overflow:"hidden", textOverflow:"ellipsis"}}>
+          {t.donateMsg}
+        </div>
+      </div>
+      {/* CTA */}
+      <a href="https://revolut.me/nathanb7mj" target="_blank" rel="noopener noreferrer"
+        style={{
+          display:"inline-flex", alignItems:"center", gap:6, flexShrink:0,
+          background:"linear-gradient(135deg,#dc2626,#991b1b)",
+          color:"#fff", borderRadius:8, padding:"8px 14px",
+          fontSize:12, fontWeight:700, textDecoration:"none",
+          whiteSpace:"nowrap", touchAction:"manipulation",
+        }}>
+        {t.donateBtn}
+      </a>
+      {/* Dismiss */}
+      <button onClick={()=>setVisible(false)} style={{
+        background:"transparent", border:"none", color:th.textFaint,
+        fontSize:18, cursor:"pointer", padding:"0 2px", flexShrink:0,
+        touchAction:"manipulation", lineHeight:1,
+      }}>×</button>
     </div>
   );
 }
@@ -1557,6 +1607,7 @@ export default function TheLineup() {
         <ResultPhase lineup={gameResult.lineup} simResult={gameResult.simResult}
           {...shared} onRestart={handleRestart}/>
       )}
+      <DonateBar t={t} th={th}/>
     </ErrorBoundary>
   );
 }
