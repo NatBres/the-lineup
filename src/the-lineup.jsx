@@ -831,7 +831,7 @@ function ThemeToggle({ theme, setTheme, t, th }) {
 // ══════════════════════════════════════════════════════════════════════════════
 // INTRO — full screen, vertical, mobile-optimized
 // ══════════════════════════════════════════════════════════════════════════════
-function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp }) {
+function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeedback }) {
   const t = T[lang];
   const th = getTheme(theme);
   const S = makeS(th);
@@ -1138,7 +1138,6 @@ function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, sho
           <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
           <button onClick={showHtp} style={{...S.ghostBtn, fontSize:13}}>❓</button>
             <button onClick={showFeedback} style={{...S.ghostBtn, fontSize:13}}>💬</button>
-          <button onClick={showFeedback} style={{...S.ghostBtn, fontSize:13}}>💬</button>
         </div>
       </div>
       <div style={{height:3, background:"#dc2626"}}/>
@@ -1366,7 +1365,6 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
           <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
           <button onClick={showHtp} style={{...S.ghostBtn, fontSize:13}}>❓</button>
             <button onClick={showFeedback} style={{...S.ghostBtn, fontSize:13}}>💬</button>
-          <button onClick={showFeedback} style={{...S.ghostBtn, fontSize:13}}>💬</button>
           <button onClick={onRestart} style={{...S.ghostBtn, fontSize:12}}>{t.newGame}</button>
         </div>
       </div>
