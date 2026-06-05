@@ -1628,7 +1628,7 @@ function FeedbackModal({ t, th, onClose }) {
   function submit() {
     if (rating === 0) return;
     // Send to Formspree (free tier, no backend needed)
-    fetch("https://formspree.io/f/xeogqvyn", {
+    fetch("https://formspree.io/f/meeweavy", {
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body: JSON.stringify({ rating, comment, lang: t.langLabel }),
