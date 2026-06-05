@@ -834,28 +834,59 @@ function DraftPhase({ mode, lang, setLang, theme, setTheme, showHtp, onComplete 
     else setSlotIdx(slotIdx+1);
   }
 
-  // Compact roster strip at the top
+  // Progress indicator: dot row (fully visible, no scroll)
   const rosterStrip = (
-    <div style={{display:"flex",gap:4,overflowX:"auto",padding:"8px 16px",
-      borderBottom:`1px solid ${th.cardBorder}`,WebkitOverflowScrolling:"touch"}}>
-      {ROSTER_KEYS.map((k,i) => {
-        const p = roster[k];
-        const active = i === slotIdx;
-        const done   = i < slotIdx;
-        return (
-          <div key={k} style={{
-            flexShrink:0,padding:"5px 10px",borderRadius:8,textAlign:"center",
-            background:active?"#dc2626":done?th.doneCard:th.card,
-            border:`1px solid ${active?"#dc2626":done?th.doneBorder:th.cardBorder}`,
-            minWidth:42,
-          }}>
-            <div style={{fontSize:10,fontWeight:700,color:active?"#fff":done?"#22c55e":th.textFaint}}>{k}</div>
-            {done && <div style={{fontSize:9,color:"#22c55e"}}>✓</div>}
-            {active && <div style={{fontSize:9,color:"rgba(255,255,255,0.8)"}}>←</div>}
-            {!done && !active && <div style={{fontSize:9,color:th.textGhost}}>—</div>}
-          </div>
-        );
-      })}
+    <div style={{padding:"8px 16px 6px",borderBottom:`1px solid ${th.cardBorder}`}}>
+      {/* Dot row */}
+      <div style={{display:"flex",alignItems:"center",gap:0,marginBottom:5}}>
+        {ROSTER_KEYS.map((k,i) => {
+          const active = i === slotIdx;
+          const done   = i < slotIdx;
+          return (
+            <React.Fragment key={k}>
+              {/* Connector line */}
+              {i > 0 && (
+                <div style={{flex:1,height:2,
+                  background: done ? "#22c55e" : th.cardBorder,
+                  transition:"background 0.3s"}}/>
+              )}
+              {/* Dot */}
+              <div style={{
+                width: active ? 28 : 20, height: active ? 28 : 20,
+                borderRadius:"50%",
+                background: active ? "#dc2626" : done ? "#22c55e" : th.card,
+                border: `2px solid ${active ? "#dc2626" : done ? "#22c55e" : th.cardBorder}`,
+                display:"flex",alignItems:"center",justifyContent:"center",
+                transition:"all 0.3s",flexShrink:0,
+                boxShadow: active ? "0 0 0 3px rgba(220,38,38,0.25)" : "none",
+              }}>
+                {done
+                  ? <span style={{fontSize:10,color:"#fff",fontWeight:700}}>✓</span>
+                  : <span style={{fontSize:8,color:active?"#fff":th.textFaint,fontWeight:700}}>{k}</span>
+                }
+              </div>
+            </React.Fragment>
+          );
+        })}
+      </div>
+      {/* Position labels */}
+      <div style={{display:"flex",alignItems:"center",gap:0}}>
+        {ROSTER_KEYS.map((k,i) => {
+          const active = i === slotIdx;
+          const done   = i < slotIdx;
+          return (
+            <React.Fragment key={k}>
+              {i > 0 && <div style={{flex:1}}/>}
+              <div style={{
+                width:20,textAlign:"center",
+                fontSize:8,fontWeight:active?700:400,
+                color:active?"#dc2626":done?"#22c55e":th.textGhost,
+                transition:"color 0.3s",
+              }}>{k}</div>
+            </React.Fragment>
+          );
+        })}
+      </div>
     </div>
   );
 
@@ -1315,85 +1346,175 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// HOW TO PLAY — mobile modal, scrollable
+// HOW TO PLAY — mobile bottom sheet, full content + engine + donate
 // ══════════════════════════════════════════════════════════════════════════════
+function Section({ title, children, th }) {
+  return (
+    <div style={{marginBottom:22}}>
+      <div style={{fontSize:11,fontWeight:700,letterSpacing:2,color:th.textDim,
+        marginBottom:10,paddingBottom:6,borderBottom:`1px solid ${th.cardBorder}`}}>
+        {title}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 function HowToPlay({ t, th, onClose }) {
   const h = t.htp;
+  const eng = h.engine;
   return (
-    <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.7)",
+    <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.65)",
       backdropFilter:"blur(4px)",overflowY:"auto",WebkitOverflowScrolling:"touch"}}
       onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{
-        background:th.modalBg,borderRadius:"16px 16px 0 0",
-        margin:"60px 0 0 0",minHeight:"calc(100vh - 60px)",padding:"20px 16px 40px",
-        border:`1px solid ${th.modalBorder}`,
+        background:th.modalBg,borderRadius:"20px 20px 0 0",
+        margin:"40px 0 0 0",minHeight:"calc(100vh - 40px)",
+        padding:"0 16px 60px",border:`1px solid ${th.modalBorder}`,
       }}>
-        {/* Handle bar */}
-        <div style={{width:40,height:4,background:th.cardBorder,borderRadius:2,
-          margin:"0 auto 16px",cursor:"pointer"}} onClick={onClose}/>
+        {/* Handle */}
+        <div style={{width:36,height:4,background:th.cardBorder,borderRadius:2,
+          margin:"12px auto 0",cursor:"pointer"}} onClick={onClose}/>
 
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
-          <div style={{fontSize:20,fontWeight:700,color:th.text}}>⚾ {h.title}</div>
-          <button onClick={onClose} style={{background:"transparent",border:"none",
-            color:th.textDim,fontSize:24,cursor:"pointer",padding:"0 4px"}}>{h.close}</button>
+        {/* Header */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+          padding:"16px 0 14px"}}>
+          <div style={{fontSize:19,fontWeight:700,color:th.text}}>⚾ {h.title}</div>
+          <button onClick={onClose} style={{background:th.card,border:`1px solid ${th.cardBorder}`,
+            color:th.textDim,fontSize:18,cursor:"pointer",borderRadius:8,
+            width:34,height:34,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
         </div>
 
-        {/* Phases */}
-        <div style={{marginBottom:20}}>
+        {/* ── Phases ── */}
+        <Section title="HOW IT WORKS" th={th}>
           {h.phases.map((p,i)=>(
-            <div key={i} style={{display:"flex",gap:12,marginBottom:12,padding:"12px",
+            <div key={i} style={{display:"flex",gap:12,marginBottom:10,padding:"12px",
               background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:10}}>
-              <div style={{fontSize:22,flexShrink:0}}>{p.icon}</div>
+              <div style={{fontSize:20,flexShrink:0}}>{p.icon}</div>
               <div>
-                <div style={{fontWeight:700,fontSize:14,color:th.text,marginBottom:4}}>{p.title}</div>
-                <div style={{fontSize:13,color:th.textMuted,lineHeight:1.6}}>{p.body}</div>
+                <div style={{fontWeight:700,fontSize:13,color:th.text,marginBottom:3}}>{p.title}</div>
+                <div style={{fontSize:12,color:th.textMuted,lineHeight:1.6}}>{p.body}</div>
               </div>
             </div>
           ))}
-        </div>
+        </Section>
 
-        {/* Scoring */}
-        <div style={{marginBottom:20}}>
-          <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>
-            {h.scoring.title.toUpperCase()}
-          </div>
+        {/* ── Stats explained ── */}
+        <Section title={h.scoring.title.toUpperCase()} th={th}>
+          <div style={{fontSize:12,color:th.textMuted,marginBottom:10,lineHeight:1.6}}>{h.scoring.body}</div>
           {h.scoring.items.map((item,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <div style={{minWidth:36,fontWeight:700,fontSize:12,color:item.color,fontFamily:"monospace"}}>{item.stat}</div>
-              <div style={{flex:1,height:4,background:th.statBar,borderRadius:2}}>
-                <div style={{height:"100%",width:`${50+i*10}%`,background:item.color,borderRadius:2}}/>
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:9}}>
+              <div style={{minWidth:34,fontWeight:700,fontSize:12,color:item.color,fontFamily:"monospace"}}>{item.stat}</div>
+              <div style={{width:60,height:4,background:th.statBar,borderRadius:2,flexShrink:0}}>
+                <div style={{height:"100%",width:`${50+i*9}%`,background:item.color,borderRadius:2}}/>
               </div>
-              <div style={{fontSize:11,color:th.textMuted,flex:2,lineHeight:1.4}}>{item.desc}</div>
+              <div style={{fontSize:11,color:th.textMuted,lineHeight:1.4,flex:1}}>{item.desc}</div>
             </div>
           ))}
-        </div>
+        </Section>
 
-        {/* Win targets */}
-        <div style={{marginBottom:20}}>
-          <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>
-            {h.wins.title.toUpperCase()}
+        {/* ── Engine: how runs are calculated ── */}
+        <Section title={eng.title.toUpperCase()} th={th}>
+          <div style={{fontSize:12,color:th.textMuted,marginBottom:10,lineHeight:1.6}}>{eng.intro}</div>
+
+          {/* Plate appearance outcomes */}
+          <div style={{marginBottom:12}}>
+            {eng.outcomes.map((o,i)=>(
+              <div key={i} style={{display:"flex",gap:8,marginBottom:6,padding:"8px 10px",
+                background:th.legend,border:`1px solid ${th.legendBorder}`,borderRadius:8}}>
+                <div style={{fontSize:10,fontFamily:"monospace",fontWeight:600,color:o.color,
+                  flexShrink:0,paddingTop:1,minWidth:130}}>{o.roll}</div>
+                <div style={{fontSize:11,color:th.textMuted,lineHeight:1.5}}>→ {o.result}</div>
+              </div>
+            ))}
           </div>
+
+          {/* Base rules */}
+          <div style={{marginBottom:12}}>
+            <div style={{fontSize:11,fontWeight:700,color:th.textDim,marginBottom:6}}>{eng.rulesTitle}</div>
+            {eng.rules.map((r,i)=>(
+              <div key={i} style={{display:"flex",gap:8,marginBottom:6}}>
+                <div style={{color:"#dc2626",flexShrink:0,fontSize:11}}>▸</div>
+                <div style={{fontSize:11,color:th.textMuted,lineHeight:1.5}}>{r}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Formula */}
+          <div style={{marginBottom:10}}>
+            <div style={{fontSize:11,fontWeight:700,color:th.textDim,marginBottom:6}}>{eng.formulaTitle}</div>
+            <div style={{fontFamily:"monospace",fontSize:13,fontWeight:700,color:"#dc2626",
+              padding:"10px 12px",background:th.legend,border:`1px solid ${th.legendBorder}`,
+              borderRadius:8,marginBottom:6}}>{eng.formula}</div>
+            <div style={{fontSize:11,color:th.textMuted,lineHeight:1.6}}>{eng.formulaNote}</div>
+          </div>
+
+          {/* Examples grid */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
+            {eng.examples.map((ex,i)=>{
+              const w=parseInt(ex.wins);
+              const col=w>=120?"#22c55e":w>=100?"#84cc16":w>=85?"#eab308":w>=70?"#f97316":"#ef4444";
+              return (
+                <div key={i} style={{padding:"8px 6px",background:th.legend,
+                  border:`1px solid ${th.legendBorder}`,borderRadius:8,textAlign:"center"}}>
+                  <div style={{fontSize:10,color:th.textFaint}}>{ex.rpg}</div>
+                  <div style={{fontSize:17,fontWeight:800,color:col,lineHeight:1.1}}>{ex.wins}</div>
+                  <div style={{fontSize:9,color:th.textMuted,lineHeight:1.3}}>{ex.label}</div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+
+        {/* ── Win targets ── */}
+        <Section title={h.wins.title.toUpperCase()} th={th}>
           {h.wins.items.map((w,i)=>(
             <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",
               background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:8,marginBottom:6}}>
-              <div style={{fontSize:13,fontWeight:800,color:w.color,minWidth:36,fontFamily:"monospace"}}>{w.threshold}</div>
+              <div style={{fontSize:12,fontWeight:800,color:w.color,minWidth:34,fontFamily:"monospace"}}>{w.threshold}</div>
               <div style={{fontSize:12,color:th.textMuted}}>{w.label}</div>
             </div>
           ))}
-        </div>
+        </Section>
 
-        {/* Tips */}
-        <div>
-          <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>
-            {h.tips.title.toUpperCase()}
-          </div>
+        {/* ── Tips ── */}
+        <Section title={h.tips.title.toUpperCase()} th={th}>
           {h.tips.items.map((tip,i)=>(
             <div key={i} style={{display:"flex",gap:8,marginBottom:10}}>
               <div style={{color:"#dc2626",flexShrink:0}}>▸</div>
-              <div style={{fontSize:13,color:th.textMuted,lineHeight:1.6}}>{tip}</div>
+              <div style={{fontSize:12,color:th.textMuted,lineHeight:1.6}}>{tip}</div>
             </div>
           ))}
+        </Section>
+
+        {/* ── Donate ── */}
+        <div style={{
+          background:"linear-gradient(135deg,rgba(220,38,38,0.1),rgba(220,38,38,0.05))",
+          border:"1px solid rgba(220,38,38,0.25)",borderRadius:14,
+          padding:"18px 16px",textAlign:"center",
+        }}>
+          <div style={{fontSize:22,marginBottom:6}}>☕</div>
+          <div style={{fontSize:15,fontWeight:700,color:th.text,marginBottom:4}}>
+            Enjoying The Lineup?
+          </div>
+          <div style={{fontSize:12,color:th.textMuted,marginBottom:14,lineHeight:1.6}}>
+            The game is free and always will be.<br/>
+            If you enjoy it, a coffee helps keep it alive!
+          </div>
+          <a href="https://revolut.me/nathanb7mj" target="_blank" rel="noopener noreferrer"
+            style={{
+              display:"inline-flex",alignItems:"center",gap:8,
+              background:"#dc2626",color:"#fff",borderRadius:10,
+              padding:"12px 24px",fontSize:14,fontWeight:700,
+              textDecoration:"none",letterSpacing:0.5,
+            }}>
+            ☕ Buy me a coffee
+          </a>
+          <div style={{fontSize:10,color:th.textFaint,marginTop:10}}>
+            via Revolut · @nathanb7mj
+          </div>
         </div>
+
       </div>
     </div>
   );
