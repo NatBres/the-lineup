@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-// ── Error Boundary — catches render errors and shows them visibly ─────────────
+
+// ── Error Boundary ────────────────────────────────────────────────────────────
 class ErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
   static getDerivedStateFromError(err) { return { error: err }; }
@@ -28,11 +29,9 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-
-
 import { PLAYERS } from "./players.js";
 
-// ── Traductions ──────────────────────────────────────────────────────────────
+// ── T object (translations) ───────────────────────────────────────────────────
 const T = {
   en: {
     title: "The Lineup",
@@ -453,10 +452,10 @@ const T = {
   },
 };
 
+// ── Constants & helpers ───────────────────────────────────────────────────────
 // ── Constantes ───────────────────────────────────────────────────────────────
 const ROSTER_KEYS = ["C","1B","2B","3B","SS","LF","CF","RF","DH"];
 const POS_GROUPS  = { C:["C"], "1B":["1B"], "2B":["2B"], "3B":["3B"], SS:["SS"], LF:["LF"], CF:["CF"], RF:["RF"], DH:["DH","1B","LF","RF","CF"] };
-
 function getPlayersForSlot(posGroup, usedNames) {
   if (!PLAYERS) return [];
   const all = Object.values(PLAYERS).flat();
@@ -583,6 +582,7 @@ function winLabel(wins, t) {
 const winColor = w => w>=140?"#22c55e":w>=110?"#84cc16":w>=90?"#eab308":w>=75?"#f97316":"#ef4444";
 
 // ── Theme ─────────────────────────────────────────────────────────────────────
+// ── Theme ─────────────────────────────────────────────────────────────────────
 const THEMES = {
   dark: {
     bg:          "#0a0e17",
@@ -654,279 +654,152 @@ const THEMES = {
   },
 };
 
-// ── Safe theme getter — always returns a valid theme object ─────────────────
-function getTheme(theme) {
-  return THEMES[theme] || THEMES.dark;
-}
+function getTheme(theme) { return THEMES[theme] || THEMES.dark; }
 
-// ── Style factory (theme-aware) ───────────────────────────────────────────────
+// ── Mobile-first style factory ────────────────────────────────────────────────
 function makeS(th) {
   return {
-    app: { minHeight:"100vh", background:th.bg, color:th.text, fontFamily:"'Georgia',serif", backgroundImage:th.bgGrad },
-    header: { background:th.headerBg, padding:"16px 24px", borderBottom:`1px solid ${th.headerBorder}`, display:"flex", alignItems:"center", justifyContent:"space-between", backdropFilter:"blur(8px)" },
-    logo:  { fontSize:20, fontWeight:700, letterSpacing:3, textTransform:"uppercase" },
-    red:   { color:"#dc2626" },
-    badge: { background:"rgba(220,38,38,0.15)", border:"1px solid rgba(220,38,38,0.3)", color:"#fca5a5", borderRadius:4, padding:"3px 10px", fontSize:11, letterSpacing:2 },
-    btn:   bg => ({ background:bg, color:"#fff", border:"none", borderRadius:8, padding:"12px 28px", fontSize:14, fontWeight:700, cursor:"pointer", letterSpacing:1 }),
-    ghostBtn: { background:th.ghostBtn.bg, border:`1px solid ${th.ghostBtn.border}`, color:th.ghostBtn.color, borderRadius:6, padding:"6px 14px", cursor:"pointer", fontSize:13 },
+    app:      { minHeight:"100vh", background:th.bg, color:th.text,
+                fontFamily:"'Georgia',serif", backgroundImage:th.bgGrad,
+                overflowX:"hidden", WebkitTapHighlightColor:"transparent" },
+    header:   { background:th.headerBg, padding:"12px 16px",
+                borderBottom:`1px solid ${th.headerBorder}`,
+                display:"flex", alignItems:"center", justifyContent:"space-between",
+                backdropFilter:"blur(8px)", position:"sticky", top:0, zIndex:100 },
+    logo:     { fontSize:18, fontWeight:700, letterSpacing:2, textTransform:"uppercase" },
+    red:      { color:"#dc2626" },
+    badge:    { background:"rgba(220,38,38,0.15)", border:"1px solid rgba(220,38,38,0.3)",
+                color:"#fca5a5", borderRadius:4, padding:"2px 8px", fontSize:10, letterSpacing:1 },
+    btn:      bg => ({ background:bg, color:"#fff", border:"none", borderRadius:10,
+                       padding:"14px 24px", fontSize:15, fontWeight:700, cursor:"pointer",
+                       letterSpacing:1, WebkitTapHighlightColor:"transparent",
+                       touchAction:"manipulation" }),
+    ghostBtn: { background:th.ghostBtn.bg, border:`1px solid ${th.ghostBtn.border}`,
+                color:th.ghostBtn.color, borderRadius:6, padding:"6px 10px",
+                cursor:"pointer", fontSize:12, touchAction:"manipulation",
+                WebkitTapHighlightColor:"transparent" },
   };
 }
 
-// ── StatBar ───────────────────────────────────────────────────────────────────
+// ── Reusable small components ─────────────────────────────────────────────────
 function StatBar({ label, value, max, color, th }) {
   return (
-    <div style={{marginBottom:4}}>
-      <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:th.textMuted,marginBottom:2}}>
-        <span>{label}</span><span style={{color:th.text}}>{value}</span>
+    <div style={{marginBottom:5}}>
+      <div style={{display:"flex",justifyContent:"space-between",fontSize:11,color:th.textMuted,marginBottom:2}}>
+        <span>{label}</span><span style={{color:th.text,fontWeight:600}}>{value}</span>
       </div>
-      <div style={{height:3,background:th.statBar,borderRadius:2}}>
-        <div style={{height:"100%",width:`${Math.min(100,(value/max)*100)}%`,background:color,borderRadius:2,transition:"width 0.5s"}}/>
+      <div style={{height:4,background:th.statBar,borderRadius:2}}>
+        <div style={{height:"100%",width:`${Math.min(100,(value/max)*100)}%`,
+          background:color,borderRadius:2,transition:"width 0.5s"}}/>
       </div>
     </div>
   );
 }
 
-// ── LangSelect ────────────────────────────────────────────────────────────────
+function HeaderBar({ left, right }) {
+  return (
+    <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+      gap:8,flexWrap:"wrap"}}>
+      {left}
+      <div style={{display:"flex",gap:6,alignItems:"center",flexShrink:0}}>{right}</div>
+    </div>
+  );
+}
+
 function LangSelect({ lang, setLang, t, th }) {
   return (
-    <div style={{display:"flex",alignItems:"center",gap:6}}>
-      <span style={{fontSize:11,color:th.textFaint}}>{t.langLabel}:</span>
-      <select value={lang} onChange={e=>setLang(e.target.value)} style={{
-        background:th.select.bg, border:`1px solid ${th.select.border}`,
-        color:th.select.color, borderRadius:5, padding:"3px 8px", fontSize:12, cursor:"pointer", outline:"none",
-      }}>
-        <option value="en">🇬🇧 English</option>
-        <option value="fr">🇫🇷 Français</option>
-        <option value="es">🇪🇸 Español</option>
-      </select>
-    </div>
+    <select value={lang} onChange={e=>setLang(e.target.value)} style={{
+      background:th.select.bg, border:`1px solid ${th.select.border}`,
+      color:th.select.color, borderRadius:6, padding:"5px 6px",
+      fontSize:13, cursor:"pointer", outline:"none", touchAction:"manipulation",
+    }}>
+      <option value="en">🇬🇧</option>
+      <option value="fr">🇫🇷</option>
+      <option value="es">🇪🇸</option>
+    </select>
   );
 }
 
-// ── ThemeToggle ───────────────────────────────────────────────────────────────
 function ThemeToggle({ theme, setTheme, t, th }) {
-  const isDark = theme === "dark";
   return (
-    <button onClick={() => setTheme(isDark ? "light" : "dark")} style={{
-      background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
-      border: `1px solid ${isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)"}`,
-      color: th.textMuted, borderRadius:6, padding:"4px 10px",
-      fontSize:12, cursor:"pointer", fontFamily:"inherit",
+    <button onClick={()=>setTheme(theme==="dark"?"light":"dark")} style={{
+      background:th.ghostBtn.bg, border:`1px solid ${th.ghostBtn.border}`,
+      color:th.ghostBtn.color, borderRadius:6, padding:"5px 8px",
+      fontSize:14, cursor:"pointer", touchAction:"manipulation",
     }}>
-      {isDark ? t.themeToggle.light : t.themeToggle.dark}
+      {theme==="dark"?"☀️":"🌙"}
     </button>
   );
 }
 
-// ── HowToPlay modal ───────────────────────────────────────────────────────────
-function HowToPlay({ t, th, onClose }) {
-  const h = t.htp;
-  return (
-    <div style={{
-      position:"fixed", inset:0, zIndex:1000,
-      background:"rgba(0,0,0,0.6)", backdropFilter:"blur(4px)",
-      display:"flex", alignItems:"flex-start", justifyContent:"center",
-      padding:"24px 16px", overflowY:"auto",
-    }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
-        background:th.modalBg, border:`1px solid ${th.modalBorder}`,
-        borderRadius:14, width:"100%", maxWidth:680, padding:28,
-        boxShadow:"0 24px 60px rgba(0,0,0,0.4)",
-      }}>
-        {/* Header */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24}}>
-          <div style={{fontSize:22,fontWeight:700,color:th.text}}>⚾ {h.title}</div>
-          <button onClick={onClose} style={{background:"transparent",border:"none",color:th.textDim,fontSize:14,cursor:"pointer"}}>{h.close}</button>
-        </div>
-
-        {/* Phases */}
-        <div style={{marginBottom:24}}>
-          {h.phases.map((p,i)=>(
-            <div key={i} style={{display:"flex",gap:14,marginBottom:14,padding:"14px 16px",background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:10}}>
-              <div style={{fontSize:24,flexShrink:0}}>{p.icon}</div>
-              <div>
-                <div style={{fontWeight:700,fontSize:14,color:th.text,marginBottom:4}}>{p.title}</div>
-                <div style={{fontSize:13,color:th.textMuted,lineHeight:1.6}}>{p.body}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Scoring — stats */}
-        <div style={{marginBottom:24}}>
-          <div style={{fontSize:13,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>{h.scoring.title.toUpperCase()}</div>
-          <div style={{fontSize:13,color:th.textMuted,marginBottom:12,lineHeight:1.6}}>{h.scoring.body}</div>
-          {h.scoring.items.map((item,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-              <div style={{minWidth:38,fontWeight:700,fontSize:12,color:item.color,fontFamily:"monospace"}}>{item.stat}</div>
-              <div style={{flex:1,height:3,background:th.statBar,borderRadius:2}}>
-                <div style={{height:"100%",width:`${55+i*8}%`,background:item.color,borderRadius:2}}/>
-              </div>
-              <div style={{fontSize:12,color:th.textMuted,flex:2}}>{item.desc}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Engine — how runs are calculated */}
-        <div style={{marginBottom:24,padding:"18px 20px",background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:12}}>
-          <div style={{fontSize:13,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>{h.engine.title.toUpperCase()}</div>
-          <div style={{fontSize:13,color:th.textMuted,marginBottom:14,lineHeight:1.6}}>{h.engine.intro}</div>
-
-          {/* Plate appearance outcomes */}
-          <div style={{marginBottom:16}}>
-            {h.engine.outcomes.map((o,i)=>(
-              <div key={i} style={{
-                display:"flex",alignItems:"flex-start",gap:10,marginBottom:6,
-                padding:"8px 12px",borderRadius:8,
-                background:th.legend,border:`1px solid ${th.legendBorder}`,
-              }}>
-                <div style={{
-                  minWidth:160,fontSize:11,fontFamily:"monospace",fontWeight:600,
-                  color:o.color,flexShrink:0,paddingTop:1,
-                }}>{o.roll}</div>
-                <div style={{fontSize:12,color:th.textMuted,lineHeight:1.5}}>→ {o.result}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Base rules */}
-          <div style={{marginBottom:16}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textDim,marginBottom:8,letterSpacing:0.5}}>{h.engine.rulesTitle}</div>
-            {h.engine.rules.map((r,i)=>(
-              <div key={i} style={{display:"flex",gap:8,marginBottom:5}}>
-                <div style={{color:"#dc2626",flexShrink:0,fontSize:12}}>▸</div>
-                <div style={{fontSize:12,color:th.textMuted,lineHeight:1.5}}>{r}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Wins formula */}
-          <div style={{marginBottom:16}}>
-            <div style={{fontSize:12,fontWeight:700,color:th.textDim,marginBottom:8,letterSpacing:0.5}}>{h.engine.formulaTitle}</div>
-            <div style={{
-              fontFamily:"monospace",fontSize:14,fontWeight:700,color:"#dc2626",
-              padding:"10px 14px",background:th.legend,border:`1px solid ${th.legendBorder}`,
-              borderRadius:8,marginBottom:8,letterSpacing:0.5,
-            }}>{h.engine.formula}</div>
-            <div style={{fontSize:12,color:th.textMuted,lineHeight:1.6}}>{h.engine.formulaNote}</div>
-          </div>
-
-          {/* Examples table */}
-          <div>
-            <div style={{fontSize:12,fontWeight:700,color:th.textDim,marginBottom:8,letterSpacing:0.5}}>{h.engine.examplesTitle}</div>
-            <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:6}}>
-              {h.engine.examples.map((ex,i)=>{
-                const w = parseInt(ex.wins);
-                const col = w>=120?"#22c55e":w>=100?"#84cc16":w>=85?"#eab308":w>=70?"#f97316":"#ef4444";
-                return (
-                  <div key={i} style={{padding:"8px 10px",background:th.legend,border:`1px solid ${th.legendBorder}`,borderRadius:8,textAlign:"center"}}>
-                    <div style={{fontSize:11,color:th.textFaint,marginBottom:2}}>{ex.rpg}</div>
-                    <div style={{fontSize:16,fontWeight:800,color:col,lineHeight:1}}>{ex.wins}</div>
-                    <div style={{fontSize:10,color:th.textMuted,marginTop:2,lineHeight:1.3}}>{ex.label}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Win targets */}
-        <div style={{marginBottom:24}}>
-          <div style={{fontSize:13,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>{h.wins.title.toUpperCase()}</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
-            {h.wins.items.map((w,i)=>(
-              <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:8}}>
-                <div style={{fontSize:13,fontWeight:800,color:w.color,minWidth:36,fontFamily:"monospace"}}>{w.threshold}</div>
-                <div style={{fontSize:12,color:th.textMuted}}>{w.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Modes */}
-        <div style={{marginBottom:24}}>
-          <div style={{fontSize:13,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>{h.modes.title.toUpperCase()}</div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-            {h.modes.items.map((m,i)=>(
-              <div key={i} style={{padding:"10px 14px",background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:8}}>
-                <div style={{fontWeight:700,fontSize:13,color:th.text,marginBottom:4}}>{m.name}</div>
-                <div style={{fontSize:12,color:th.textMuted}}>{m.desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Tips */}
-        <div>
-          <div style={{fontSize:13,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>{h.tips.title.toUpperCase()}</div>
-          {h.tips.items.map((tip,i)=>(
-            <div key={i} style={{display:"flex",gap:10,marginBottom:8}}>
-              <div style={{color:"#dc2626",flexShrink:0,marginTop:1}}>▸</div>
-              <div style={{fontSize:13,color:th.textMuted,lineHeight:1.55}}>{tip}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-
-
-
 // ══════════════════════════════════════════════════════════════════════════════
-// INTRO
+// INTRO — full screen, vertical, mobile-optimized
 // ══════════════════════════════════════════════════════════════════════════════
 function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp }) {
   const t = T[lang];
   const th = getTheme(theme);
   const S = makeS(th);
   const [mode, setMode] = useState("classic");
+
   return (
     <div style={S.app}>
+      {/* Header */}
       <div style={S.header}>
         <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
-        <div style={{display:"flex",gap:10,alignItems:"center"}}>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
           <LangSelect lang={lang} setLang={setLang} t={t} th={th}/>
-          <button onClick={showHtp} style={{...S.ghostBtn,fontSize:12}}>❓ {t.howToPlayBtn}</button>
           <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
-          <div style={S.badge}>{t.tagline}</div>
+          <button onClick={showHtp} style={{...S.ghostBtn,fontSize:13,padding:"5px 8px"}}>❓</button>
         </div>
       </div>
-      <div style={{maxWidth:540,margin:"0 auto",padding:"56px 24px",textAlign:"center"}}>
-        <div style={{fontSize:66,marginBottom:10}}>⚾</div>
-        <h1 style={{fontSize:34,fontWeight:700,letterSpacing:1,marginBottom:12,lineHeight:1.2}}>
-          {t.subtitle.split(" ").slice(0,-1).join(" ")}<br/>
-          <span style={{color:"#dc2626"}}>{t.subtitle.split(" ").slice(-1)}</span>
-        </h1>
-        <p style={{color:"#94a3b8",fontSize:15,lineHeight:1.75,marginBottom:24}}>{t.introPara}</p>
-        <div style={{background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:12,padding:20,marginBottom:28,textAlign:"left"}}>
-          <div style={{fontSize:11,letterSpacing:2,color:"#64748b",marginBottom:10}}>{t.chooseMode}</div>
+
+      {/* Body */}
+      <div style={{padding:"32px 20px 40px",maxWidth:480,margin:"0 auto"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:56,marginBottom:8}}>⚾</div>
+          <div style={{fontSize:28,fontWeight:700,lineHeight:1.2,marginBottom:10}}>
+            Build the Perfect<br/><span style={{color:"#dc2626"}}>Lineup</span>
+          </div>
+          <div style={{fontSize:14,color:th.textMuted,lineHeight:1.7}}>
+            {t.introPara}
+          </div>
+        </div>
+
+        {/* Mode selector */}
+        <div style={{marginBottom:24}}>
+          <div style={{fontSize:11,letterSpacing:2,color:th.textDim,marginBottom:10}}>{t.chooseMode}</div>
           {[["classic",t.modeClassic,t.modeClassicDesc],["scout",t.modeScout,t.modeScoutDesc]].map(([val,label,desc])=>(
             <div key={val} onClick={()=>setMode(val)} style={{
-              display:"flex",alignItems:"center",gap:12,padding:"10px 14px",borderRadius:8,marginBottom:6,cursor:"pointer",
+              display:"flex",alignItems:"center",gap:12,padding:"14px 16px",
+              borderRadius:12,marginBottom:10,cursor:"pointer",
               background:mode===val?th.activeCard:th.card,
-              border:`1px solid ${mode===val?th.activeB:th.cardBorder}`,
-              transition:"all 0.2s",
+              border:`2px solid ${mode===val?th.activeB:th.cardBorder}`,
+              transition:"all 0.2s",touchAction:"manipulation",
             }}>
-              <div style={{fontSize:18}}>{label.split(" ")[0]}</div>
-              <div>
-                <div style={{fontWeight:600,fontSize:14}}>{label.slice(3)}</div>
-                <div style={{fontSize:12,color:th.textDim}}>{desc}</div>
+              <div style={{fontSize:22}}>{label.split(" ")[0]}</div>
+              <div style={{flex:1}}>
+                <div style={{fontWeight:600,fontSize:15,color:th.text}}>{label.slice(3)}</div>
+                <div style={{fontSize:13,color:th.textDim,marginTop:2}}>{desc}</div>
               </div>
-              {mode===val&&<div style={{marginLeft:"auto",color:"#dc2626",fontSize:18}}>✓</div>}
+              <div style={{width:22,height:22,borderRadius:11,border:`2px solid ${mode===val?"#dc2626":th.cardBorder}`,
+                background:mode===val?"#dc2626":"transparent",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                {mode===val&&<div style={{width:8,height:8,borderRadius:4,background:"#fff"}}/>}
+              </div>
             </div>
           ))}
         </div>
-        <button onClick={()=>onStart(mode)} style={S.btn("linear-gradient(135deg,#dc2626,#991b1b)")}>{t.playBall}</button>
+
+        <button onClick={()=>onStart(mode)} style={{
+          ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
+          width:"100%",fontSize:17,padding:"16px",borderRadius:12,
+        }}>{t.playBall}</button>
       </div>
     </div>
   );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// DRAFT
+// DRAFT — mobile-first: position header + scrollable player cards (2 columns)
 // ══════════════════════════════════════════════════════════════════════════════
 function DraftPhase({ mode, lang, setLang, theme, setTheme, showHtp, onComplete }) {
   const t = T[lang];
@@ -938,591 +811,589 @@ function DraftPhase({ mode, lang, setLang, theme, setTheme, showHtp, onComplete 
   const [options,   setOptions]   = useState(null);
   const [fadeIn,    setFadeIn]    = useState(false);
 
-  const key      = ROSTER_KEYS[slotIdx];
-  const posGroup = POS_GROUPS[key];
-  const progressPct = (slotIdx / ROSTER_KEYS.length) * 100;
+  const key       = ROSTER_KEYS[slotIdx];
+  const posGroup  = POS_GROUPS[key];
+  const progress  = ((slotIdx) / ROSTER_KEYS.length) * 100;
 
   useEffect(() => {
     setOptions(null); setFadeIn(false);
     const t1 = setTimeout(() => {
       setOptions(getPlayersForSlot(posGroup, usedNames));
       setTimeout(() => setFadeIn(true), 40);
-    }, 550);
+    }, 500);
     return () => clearTimeout(t1);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slotIdx]);
 
   function selectPlayer(player) {
     const era = getEra(player.name);
-    const newRoster = {...roster, [key]: {...player, era}};
-    const newUsed   = new Set([...usedNames, player.name]);
+    const newRoster  = {...roster, [key]: {...player, era}};
+    const newUsed    = new Set([...usedNames, player.name]);
     setRoster(newRoster); setUsedNames(newUsed);
     if (slotIdx+1 >= ROSTER_KEYS.length) onComplete(newRoster);
     else setSlotIdx(slotIdx+1);
   }
 
+  // Compact roster strip at the top
+  const rosterStrip = (
+    <div style={{display:"flex",gap:4,overflowX:"auto",padding:"8px 16px",
+      borderBottom:`1px solid ${th.cardBorder}`,WebkitOverflowScrolling:"touch"}}>
+      {ROSTER_KEYS.map((k,i) => {
+        const p = roster[k];
+        const active = i === slotIdx;
+        const done   = i < slotIdx;
+        return (
+          <div key={k} style={{
+            flexShrink:0,padding:"5px 10px",borderRadius:8,textAlign:"center",
+            background:active?"#dc2626":done?th.doneCard:th.card,
+            border:`1px solid ${active?"#dc2626":done?th.doneBorder:th.cardBorder}`,
+            minWidth:42,
+          }}>
+            <div style={{fontSize:10,fontWeight:700,color:active?"#fff":done?"#22c55e":th.textFaint}}>{k}</div>
+            {done && <div style={{fontSize:9,color:"#22c55e"}}>✓</div>}
+            {active && <div style={{fontSize:9,color:"rgba(255,255,255,0.8)"}}>←</div>}
+            {!done && !active && <div style={{fontSize:9,color:th.textGhost}}>—</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
     <div style={S.app}>
-      <div style={S.header}>
-        <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
-        <div style={{display:"flex",gap:10,alignItems:"center"}}>
-          <LangSelect lang={lang} setLang={setLang} t={t} th={th}/>
-          <button onClick={showHtp} style={{...S.ghostBtn,fontSize:12}}>❓ {t.howToPlayBtn}</button>
-          <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
-          <div style={S.badge}>{mode==="scout"?"SCOUT":"CLASSIC"}</div>
-          <div style={{fontSize:12,color:th.textDim}}>{t.phase1Label}{slotIdx+1}/9</div>
-        </div>
-      </div>
-      <div style={{height:3,background:th.progressBg}}>
-        <div style={{height:"100%",width:`${progressPct}%`,background:"#dc2626",transition:"width 0.4s"}}/>
-      </div>
-
-      <div style={{maxWidth:1080,margin:"0 auto",padding:"18px 16px",display:"grid",gridTemplateColumns:"190px 1fr",gap:18}}>
-
-        {/* Roster sidebar */}
-        <div>
-          <div style={{fontSize:11,letterSpacing:2,color:"#64748b",marginBottom:8}}>{t.rosterLabel}</div>
-          {ROSTER_KEYS.map((k,i)=>{
-            const p=roster[k], active=i===slotIdx, done=i<slotIdx;
-            return (
-              <div key={k} style={{display:"flex",alignItems:"center",gap:7,padding:"6px 9px",borderRadius:6,marginBottom:3,
-                background:active?th.activeCard:done?th.doneCard:"transparent",
-                border:`1px solid ${active?th.activeB:done?th.doneBorder:"rgba(0,0,0,0.02)"}`,
-                transition:"all 0.3s"}}>
-                <div style={{fontSize:12}}>{t.posIcons[k]}</div>
-                <div style={{width:24,fontSize:10,fontWeight:700,color:active?"#dc2626":th.textFaint,fontFamily:"monospace"}}>{k}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  {p ? (<>
-                    <div style={{fontSize:12,fontWeight:600,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{p.name}</div>
-                    <div style={{fontSize:10,color:"#fbbf24"}}>{p.era}</div>
-                  </>) : (
-                    <div style={{fontSize:11,color:active?"#dc2626":th.textGhost}}>{active?t.inProgress:t.posNames[k]}</div>
-                  )}
-                </div>
-                {done&&<div style={{color:"#22c55e",fontSize:13}}>{t.done}</div>}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Draft area */}
-        <div>
-          <div style={{background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:12,padding:"14px 18px",marginBottom:12,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div>
-              <div style={{fontSize:11,letterSpacing:2,color:"#64748b"}}>{t.posLabel}</div>
-              <div style={{fontSize:22,fontWeight:700}}>{t.posIcons[key]} {t.posNames[key]}</div>
-              <div style={{fontSize:13,color:"#94a3b8"}}>{t.tipLabel} <span style={{color:"#fbbf24"}}>{t.posTips[key]}</span></div>
-            </div>
-            <div style={{fontSize:11,color:th.textFaint}}>{t.allEras}</div>
+      {/* Header */}
+      <div style={{...S.header,flexDirection:"column",gap:0,padding:0}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+          padding:"10px 16px",width:"100%",boxSizing:"border-box"}}>
+          <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
+          <div style={{display:"flex",gap:6,alignItems:"center"}}>
+            <LangSelect lang={lang} setLang={setLang} t={t} th={th}/>
+            <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
+            <button onClick={showHtp} style={{...S.ghostBtn,fontSize:13}}>❓</button>
+            <div style={S.badge}>{mode==="scout"?"SCOUT":"PRO"}</div>
           </div>
-
-          {!options ? (
-            <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:200}}>
-              <div style={{textAlign:"center"}}>
-                <div style={{fontSize:30,animation:"spin 0.7s linear infinite"}}>⚾</div>
-                <div style={{fontSize:12,color:th.textFaint,letterSpacing:2,marginTop:10}}>{t.loading}</div>
-              </div>
-              <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-            </div>
-          ) : (
-            <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:10,opacity:fadeIn?1:0,transform:fadeIn?"translateY(0)":"translateY(8px)",transition:"opacity 0.3s,transform 0.3s"}}>
-              {options.map((player,i)=>{
-                const era=getEra(player.name);
-                return (
-                  <div key={i}
-                    onClick={()=>selectPlayer(player)}
-                    onMouseEnter={e=>{e.currentTarget.style.borderColor=th.cardHoverB;e.currentTarget.style.background=th.cardHover;}}
-                    onMouseLeave={e=>{e.currentTarget.style.borderColor=th.cardBorder;e.currentTarget.style.background=th.card;}}
-                    style={{background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:10,padding:12,cursor:"pointer",transition:"all 0.15s"}}>
-                    <div style={{fontSize:10,color:"#fbbf24",fontWeight:600,marginBottom:1,letterSpacing:1}}>{era}</div>
-                    <div style={{fontSize:10,color:th.textDim,marginBottom:4}}>{player.pos}</div>
-                    <div style={{fontSize:13,fontWeight:700,marginBottom:10,lineHeight:1.3,minHeight:32}}>{player.name}</div>
-                    {mode==="classic" ? (<>
-                      <StatBar label="OBP" value={player.obp}              max={0.55} color="#3b82f6" th={th}/>
-                      <StatBar label="SLG" value={player.slg}              max={0.75} color="#dc2626" th={th}/>
-                      <StatBar label="AVG" value={player.avg}              max={0.40} color="#22c55e" th={th}/>
-                      <StatBar label="BB%" value={player.bbRate}           max={22}   color="#a78bfa" th={th}/>
-                      <StatBar label="SB"  value={Math.min(player.sb,500)} max={500}  color="#f59e0b" th={th}/>
-                    </>) : (
-                      <div style={{fontSize:11,color:th.textFaint,fontStyle:"italic",textAlign:"center",paddingTop:8}}>{t.statsHidden}</div>
-                    )}
-                    <button style={{width:"100%",marginTop:10,padding:"7px 0",background:"linear-gradient(135deg,#dc2626,#991b1b)",color:"#fff",border:"none",borderRadius:5,fontSize:12,fontWeight:600,cursor:"pointer"}}>{t.draftBtn}</button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
+        {/* Progress bar */}
+        <div style={{height:3,background:th.progressBg,width:"100%"}}>
+          <div style={{height:"100%",width:`${progress}%`,background:"#dc2626",transition:"width 0.4s"}}/>
+        </div>
+        {/* Roster strip */}
+        {rosterStrip}
+      </div>
+
+      {/* Current position header */}
+      <div style={{padding:"12px 16px",background:th.card,
+        borderBottom:`1px solid ${th.cardBorder}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{fontSize:32}}>{t.posIcons[key]}</div>
+          <div>
+            <div style={{fontSize:18,fontWeight:700,color:th.text}}>{t.posNames[key]}</div>
+            <div style={{fontSize:12,color:th.textMuted}}>
+              {t.tipLabel} <span style={{color:"#fbbf24"}}>{t.posTips[key]}</span>
+              <span style={{color:th.textDim}}> · {t.allEras}</span>
+            </div>
+          </div>
+          <div style={{marginLeft:"auto",fontSize:13,fontWeight:700,color:"#dc2626"}}>
+            {slotIdx+1}/9
+          </div>
+        </div>
+      </div>
+
+      {/* Player cards — 2-column grid, scrollable */}
+      <div style={{padding:"12px 12px 32px",overflowY:"auto"}}>
+        {!options ? (
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",
+            justifyContent:"center",padding:"60px 0",gap:12}}>
+            <div style={{fontSize:36,animation:"spin 0.7s linear infinite"}}>⚾</div>
+            <div style={{fontSize:13,color:th.textFaint,letterSpacing:2}}>{t.loading}</div>
+            <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+          </div>
+        ) : (
+          <div style={{
+            display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,
+            opacity:fadeIn?1:0,transform:fadeIn?"translateY(0)":"translateY(10px)",
+            transition:"opacity 0.3s,transform 0.3s",
+          }}>
+            {options.map((player,i) => {
+              const era = getEra(player.name);
+              return (
+                <div key={i} onClick={()=>selectPlayer(player)} style={{
+                  background:th.card,border:`1px solid ${th.cardBorder}`,
+                  borderRadius:12,padding:"14px 12px",cursor:"pointer",
+                  touchAction:"manipulation",WebkitTapHighlightColor:"rgba(220,38,38,0.1)",
+                  transition:"transform 0.1s, border-color 0.1s",
+                  active:{transform:"scale(0.97)"},
+                }}>
+                  {/* Era badge */}
+                  <div style={{fontSize:10,color:"#fbbf24",fontWeight:700,
+                    letterSpacing:1,marginBottom:2}}>{era}</div>
+                  {/* Position */}
+                  <div style={{fontSize:10,color:th.textDim,marginBottom:4}}>{player.pos}</div>
+                  {/* Name */}
+                  <div style={{fontSize:14,fontWeight:700,lineHeight:1.3,
+                    marginBottom:10,color:th.text,minHeight:38}}>{player.name}</div>
+                  {/* Stats or hidden */}
+                  {mode==="classic" ? (
+                    <div>
+                      <StatBar label="OBP" value={player.obp} max={0.55} color="#3b82f6" th={th}/>
+                      <StatBar label="SLG" value={player.slg} max={0.75} color="#dc2626" th={th}/>
+                      <StatBar label="AVG" value={player.avg} max={0.40} color="#22c55e" th={th}/>
+                      <StatBar label="BB%" value={player.bbRate} max={22} color="#a78bfa" th={th}/>
+                      <StatBar label="SB"  value={Math.min(player.sb,500)} max={500} color="#f59e0b" th={th}/>
+                    </div>
+                  ) : (
+                    <div style={{fontSize:12,color:th.textFaint,fontStyle:"italic",
+                      textAlign:"center",padding:"8px 0"}}>{t.statsHidden}</div>
+                  )}
+                  {/* Draft button */}
+                  <button style={{
+                    width:"100%",marginTop:10,padding:"10px 0",
+                    background:"linear-gradient(135deg,#dc2626,#991b1b)",
+                    color:"#fff",border:"none",borderRadius:8,
+                    fontSize:13,fontWeight:700,cursor:"pointer",
+                    touchAction:"manipulation",letterSpacing:1,
+                  }}>{t.draftBtn}</button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// ORDER — drag & drop batting order
-// Layout: left = numbered slots (drop targets), right = bench (drag sources)
-// A player can also be dragged from one slot to another to swap directly.
+// ORDER — mobile touch reorder
+// Tap ↑↓ arrows OR tap a player then tap another to swap
+// Long-press visual feedback for selection
 // ══════════════════════════════════════════════════════════════════════════════
 function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, onComplete }) {
   const t = T[lang];
   const th = getTheme(theme);
   const S = makeS(th);
 
-  // slots[0..8] = player or null  |  bench = unassigned players
-  const initial = ROSTER_KEYS.map(k => roster[k]);
-  const [slots,   setSlots]   = useState(initial);   // length-9 array
-  const [bench,   setBench]   = useState([]);         // always empty at start (all pre-filled)
+  const [order,    setOrder]    = useState(ROSTER_KEYS.map(k => roster[k]));
+  const [selected, setSelected] = useState(null); // selected slot index
 
-  // drag state: { from: "slot"|"bench", index: number }
-  const [dragSrc,  setDragSrc]  = useState(null);
-  const [dropTarget, setDropTarget] = useState(null); // { to: "slot"|"bench", index }
-
-  // ── helpers ──────────────────────────────────────────────────────────────
-  const allFilled = slots.every(s => s !== null);
-
-  function startDrag(from, index) {
-    setDragSrc({ from, index });
-  }
-
-  function enterTarget(to, index) {
-    setDropTarget({ to, index });
-  }
-
-  function clearDrag() {
-    setDragSrc(null);
-    setDropTarget(null);
-  }
-
-  function handleDrop(to, toIndex) {
-    if (!dragSrc) return;
-    const { from, index: fromIndex } = dragSrc;
-    const newSlots = [...slots];
-    const newBench = [...bench];
-
-    if (from === "slot" && to === "slot") {
-      // Swap two slots
-      [newSlots[fromIndex], newSlots[toIndex]] = [newSlots[toIndex], newSlots[fromIndex]];
-    } else if (from === "bench" && to === "slot") {
-      // Place bench player into slot; if slot occupied, push displaced to bench
-      const displaced = newSlots[toIndex];
-      newSlots[toIndex] = newBench[fromIndex];
-      newBench.splice(fromIndex, 1);
-      if (displaced) newBench.push(displaced);
-    } else if (from === "slot" && to === "bench") {
-      // Move slot player to bench
-      newBench.push(newSlots[fromIndex]);
-      newSlots[fromIndex] = null;
-    } else if (from === "bench" && to === "bench") {
-      // Reorder bench (no-op for our use case)
+  function tap(i) {
+    if (selected === null) {
+      setSelected(i);
+    } else if (selected === i) {
+      setSelected(null);
+    } else {
+      const o = [...order];
+      [o[selected], o[i]] = [o[i], o[selected]];
+      setOrder(o);
+      setSelected(null);
     }
-
-    setSlots(newSlots);
-    setBench(newBench);
-    clearDrag();
   }
 
-  // Click a bench player → place into first empty slot
-  function placeBenchPlayer(bIdx) {
-    const emptySlot = slots.findIndex(s => s === null);
-    if (emptySlot === -1) return;
-    const newSlots = [...slots];
-    const newBench = [...bench];
-    newSlots[emptySlot] = newBench[bIdx];
-    newBench.splice(bIdx, 1);
-    setSlots(newSlots);
-    setBench(newBench);
-  }
-
-  // Click a slot player → remove to bench
-  function removeFromSlot(slotIdx) {
-    const newBench = [...bench, slots[slotIdx]];
-    const newSlots = [...slots];
-    newSlots[slotIdx] = null;
-    setSlots(newSlots);
-    setBench(newBench);
-  }
-
-  const isDraggingFrom = (from, idx) => dragSrc && dragSrc.from === from && dragSrc.index === idx;
-  const isDropTarget   = (to, idx)   => dropTarget && dropTarget.to === to && dropTarget.index === idx;
-
-  // Slot background/border based on state
-  function slotStyle(i) {
-    const occupied  = slots[i] !== null;
-    const dragging  = isDraggingFrom("slot", i);
-    const targeted  = isDropTarget("slot", i);
-    return {
-      display: "flex", alignItems: "stretch", borderRadius: 10, minHeight: 68,
-      border: `2px solid ${targeted ? "#dc2626" : dragging ? "rgba(255,255,255,0.25)" : occupied ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)"}`,
-      background: targeted ? "rgba(220,38,38,0.12)" : dragging ? th.doneCard : occupied ? th.card : th.legend,
-      opacity: dragging ? 0.5 : 1,
-      transition: "border 0.12s, background 0.12s",
-      overflow: "hidden",
-      cursor: occupied ? "grab" : "default",
-    };
+  function move(i, dir) {
+    const ni = i + dir;
+    if (ni < 0 || ni >= order.length) return;
+    const o = [...order];
+    [o[i], o[ni]] = [o[ni], o[i]];
+    setOrder(o);
+    if (selected === i) setSelected(ni);
   }
 
   return (
     <div style={S.app}>
-      <div style={S.header}>
+      {/* Header */}
+      <div style={{...S.header, padding:"10px 16px"}}>
         <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
-        <div style={{display:"flex", gap:10, alignItems:"center"}}>
+        <div style={{display:"flex", gap:6, alignItems:"center"}}>
           <LangSelect lang={lang} setLang={setLang} t={t} th={th}/>
-          <button onClick={showHtp} style={{...S.ghostBtn, fontSize:12}}>❓ {t.howToPlayBtn}</button>
           <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
-          <div style={S.badge}>{mode==="scout"?"SCOUT":"CLASSIC"}</div>
-          <div style={{fontSize:12, color:th.textDim}}>{t.phase2Label}</div>
+          <button onClick={showHtp} style={{...S.ghostBtn, fontSize:13}}>❓</button>
         </div>
       </div>
       <div style={{height:3, background:"#dc2626"}}/>
 
-      <div style={{maxWidth:980, margin:"0 auto", padding:"20px 16px"}}>
+      <div style={{padding:"14px 12px 100px"}}>
 
-        {/* Title */}
-        <div style={{textAlign:"center", marginBottom:18}}>
-          <div style={{fontSize:12, color:th.textDim, letterSpacing:2, marginBottom:3}}>{t.phase2Title}</div>
-          <div style={{fontSize:13, color:th.textFaint}}>{t.phase2Hint}</div>
+        {/* Instruction banner */}
+        <div style={{
+          textAlign:"center", marginBottom:14, padding:"10px 14px",
+          background: selected !== null ? "rgba(220,38,38,0.12)" : th.card,
+          border: `1px solid ${selected !== null ? "rgba(220,38,38,0.4)" : th.cardBorder}`,
+          borderRadius:10, transition:"all 0.2s",
+        }}>
+          <div style={{fontSize:12, fontWeight:700, color: selected !== null ? "#dc2626" : th.textDim, letterSpacing:1}}>
+            {t.phase2Title}
+          </div>
+          <div style={{fontSize:12, color: th.textMuted, marginTop:3}}>
+            {selected !== null
+              ? `⚡ ${order[selected]?.name} — tap another slot to swap`
+              : "Tap a player to select · ↑↓ to move"}
+          </div>
         </div>
 
-        <div style={{display:"grid", gridTemplateColumns:"1fr 260px", gap:16, alignItems:"start"}}>
+        {/* Slots */}
+        <div style={{display:"flex", flexDirection:"column", gap:7}}>
+          {order.map((player, i) => {
+            const isSel = selected === i;
+            const isSwapTarget = selected !== null && selected !== i;
+            return (
+              <div key={i} style={{
+                display:"flex", alignItems:"stretch",
+                borderRadius:12, overflow:"hidden",
+                border:`2px solid ${isSel ? "#dc2626" : isSwapTarget ? "rgba(220,38,38,0.3)" : th.cardBorder}`,
+                background: isSel ? "rgba(220,38,38,0.08)" : th.card,
+                transition:"all 0.15s", cursor:"pointer",
+                boxShadow: isSel ? "0 0 0 3px rgba(220,38,38,0.15)" : "none",
+              }}>
 
-          {/* ── LEFT: 9 numbered slots ── */}
-          <div>
-            <div style={{fontSize:10, letterSpacing:2, color:th.textFaint, marginBottom:8}}>BATTING ORDER</div>
-            <div style={{display:"flex", flexDirection:"column", gap:6}}>
-              {slots.map((player, i) => (
-                <div
-                  key={i}
-                  style={slotStyle(i)}
-                  onDragOver={e => e.preventDefault()}
-                  onDragEnter={() => enterTarget("slot", i)}
-                  onDragLeave={() => setDropTarget(null)}
-                  onDrop={() => handleDrop("slot", i)}
-                >
-                  {/* Slot number badge */}
-                  <div style={{
-                    minWidth: 52, display:"flex", flexDirection:"column",
-                    alignItems:"center", justifyContent:"center",
-                    background: th.tableHead,
-                    borderRight: `1px solid ${th.cardBorder}`,
-                    padding: "8px 4px",
-                  }}>
-                    <div style={{fontSize:24, fontWeight:900, color: player ? "#dc2626" : "#1e293b", lineHeight:1}}>{i+1}</div>
-                    <div style={{fontSize:9, color:"#475569", marginTop:2, textAlign:"center", lineHeight:1.2}}>{t.slotRoles[i]}</div>
+                {/* Slot number — tap to select/swap */}
+                <div onClick={() => tap(i)} style={{
+                  minWidth:50, display:"flex", flexDirection:"column",
+                  alignItems:"center", justifyContent:"center",
+                  padding:"10px 4px",
+                  background: isSel ? "rgba(220,38,38,0.2)" : th.tableHead,
+                  borderRight:`1px solid ${th.cardBorder}`,
+                  touchAction:"manipulation",
+                }}>
+                  <div style={{fontSize:22, fontWeight:900, color:"#dc2626", lineHeight:1}}>{i+1}</div>
+                  <div style={{fontSize:9, color: isSel ? "#dc2626" : th.textFaint, marginTop:2, textAlign:"center"}}>
+                    {t.slotRoles[i]}
                   </div>
+                  {isSel && <div style={{fontSize:11, marginTop:3}}>✓</div>}
+                </div>
 
-                  {/* Player card or empty drop zone */}
-                  {player ? (
-                    <div
-                      draggable
-                      onDragStart={() => startDrag("slot", i)}
-                      onDragEnd={clearDrag}
-                      style={{flex:1, display:"flex", alignItems:"center", gap:10, padding:"8px 12px", cursor:"grab"}}
-                    >
-                      {/* Drag handle */}
-                      <div style={{color:th.textGhost, fontSize:14, userSelect:"none", flexShrink:0}}>⠿</div>
-
-                      {/* Player info */}
-                      <div style={{flex:1, minWidth:0}}>
-                        <div style={{fontWeight:700, fontSize:14, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{player.name}</div>
-                        <div style={{fontSize:11, color:th.textDim}}>
-                          {player.pos}
-                          {" · "}<span style={{color:"#fbbf24"}}>{player.era}</span>
-                          {" · "}<span style={{color:"#94a3b8"}}>{player.team}</span>
-                        </div>
-                        {mode === "classic" && (
-                          <div style={{fontSize:11, marginTop:2, display:"flex", gap:10}}>
-                            <span>OBP <span style={{color:"#3b82f6"}}>{player.obp}</span></span>
-                            <span>SLG <span style={{color:"#dc2626"}}>{player.slg}</span></span>
-                            <span>AVG <span style={{color:"#22c55e"}}>{player.avg}</span></span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Slot hint */}
-                      <div style={{textAlign:"center", flexShrink:0, marginRight:4}}>
-                        <div style={{fontSize:16}}>{t.slotIcons[i]}</div>
-                        <div style={{fontSize:9, color:th.textFaint, maxWidth:50, lineHeight:1.3}}>{t.slotTips[i]}</div>
-                      </div>
-
-                      {/* Remove button */}
-                      <button
-                        onClick={() => removeFromSlot(i)}
-                        title="Remove"
-                        style={{
-                          background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)",
-                          color:th.textFaint, borderRadius:5, width:22, height:22, fontSize:13,
-                          cursor:"pointer", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center",
-                          lineHeight:1,
-                        }}
-                      >×</button>
-                    </div>
-                  ) : (
-                    <div
-                      onDragOver={e => e.preventDefault()}
-                      style={{
-                        flex:1, display:"flex", alignItems:"center", justifyContent:"center",
-                        color: isDropTarget("slot",i) ? "#dc2626" : th.slotEmptyTxt,
-                        fontSize:12, letterSpacing:1, fontStyle:"italic",
-                        transition:"color 0.12s",
-                      }}
-                    >
-                      {isDropTarget("slot",i) ? "DROP HERE" : "— empty —"}
+                {/* Player info — tap to select/swap */}
+                <div onClick={() => tap(i)} style={{
+                  flex:1, padding:"10px 12px", minWidth:0,
+                  touchAction:"manipulation",
+                }}>
+                  <div style={{fontWeight:700, fontSize:15, color:th.text,
+                    whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                    {player.name}
+                  </div>
+                  <div style={{fontSize:11, color:th.textDim, marginTop:2}}>
+                    <span style={{fontFamily:"monospace"}}>{player.pos}</span>
+                    {" · "}<span style={{color:"#fbbf24"}}>{player.era}</span>
+                  </div>
+                  {mode === "classic" && (
+                    <div style={{fontSize:11, color:th.textMuted, marginTop:3, display:"flex", gap:8}}>
+                      <span>OBP <span style={{color:"#3b82f6", fontWeight:600}}>{player.obp}</span></span>
+                      <span>SLG <span style={{color:"#dc2626", fontWeight:600}}>{player.slg}</span></span>
+                      <span>AVG <span style={{color:"#22c55e", fontWeight:600}}>{player.avg}</span></span>
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* ── RIGHT: bench + simulate button ── */}
-          <div style={{position:"sticky", top:16}}>
-            <div style={{fontSize:10, letterSpacing:2, color:th.textFaint, marginBottom:8}}>
-              {bench.length > 0 ? `BENCH (${bench.length})` : "ALL PLAYERS PLACED"}
-            </div>
-
-            {/* Bench drop zone */}
-            <div
-              onDragOver={e => e.preventDefault()}
-              onDragEnter={() => enterTarget("bench", 0)}
-              onDragLeave={() => setDropTarget(null)}
-              onDrop={() => handleDrop("bench", 0)}
-              style={{
-                minHeight: 60, borderRadius:10, marginBottom:8,
-                border: `2px dashed ${isDropTarget("bench",0) ? "#dc2626" : th.cardBorder}`,
-                background: isDropTarget("bench",0) ? "rgba(220,38,38,0.06)" : "transparent",
-                transition:"all 0.12s", padding: bench.length ? 0 : "0",
-                display: bench.length ? "flex" : (isDropTarget("bench",0) ? "flex" : "none"),
-                flexDirection:"column", gap:4, padding:"6px",
-              }}
-            >
-              {bench.map((player, bIdx) => (
-                <div
-                  key={player.name}
-                  draggable
-                  onDragStart={() => startDrag("bench", bIdx)}
-                  onDragEnd={clearDrag}
-                  onClick={() => placeBenchPlayer(bIdx)}
-                  style={{
-                    display:"flex", alignItems:"center", gap:8,
-                    padding:"8px 10px", borderRadius:8, cursor:"grab",
-                    background: isDraggingFrom("bench",bIdx) ? th.doneCard : th.card,
-                    border:`1px solid ${isDraggingFrom("bench",bIdx) ? th.cardBorder : th.cardBorder}`,
-                    opacity: isDraggingFrom("bench",bIdx) ? 0.4 : 1,
-                    transition:"all 0.1s",
-                  }}
-                >
-                  <div style={{color:th.textGhost, fontSize:13, userSelect:"none"}}>⠿</div>
-                  <div style={{flex:1, minWidth:0}}>
-                    <div style={{fontSize:13, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{player.name}</div>
-                    <div style={{fontSize:10, color:th.textDim}}>{player.pos} · <span style={{color:"#fbbf24"}}>{player.era}</span></div>
-                  </div>
-                  <div style={{fontSize:10, color:th.textGhost}}>tap to place</div>
+                {/* Role hint */}
+                <div style={{display:"flex", flexDirection:"column", alignItems:"center",
+                  justifyContent:"center", padding:"0 6px",
+                  borderLeft:`1px solid ${th.cardBorder}`, minWidth:28}}>
+                  <div style={{fontSize:15}}>{t.slotIcons[i]}</div>
                 </div>
-              ))}
-            </div>
 
-            {/* Legend */}
-            <div style={{
-              background:th.legend, border:`1px solid ${th.legendBorder}`,
-              borderRadius:8, padding:"10px 12px", marginBottom:12, fontSize:11, color:th.textFaint, lineHeight:1.8,
-            }}>
-              <div>⠿ Drag a card to reorder</div>
-              <div>× Remove from slot → bench</div>
-              <div>↙ Tap bench card → first empty slot</div>
-              <div>↔ Drag slot to slot → swap</div>
-            </div>
-
-            {/* Simulate button */}
-            <button
-              onClick={() => allFilled && onComplete(slots)}
-              style={{
-                ...S.btn(allFilled
-                  ? "linear-gradient(135deg,#dc2626,#991b1b)"
-                  : "rgba(255,255,255,0.04)"),
-                width:"100%", opacity: allFilled ? 1 : 0.4,
-                cursor: allFilled ? "pointer" : "not-allowed",
-                border: allFilled ? "none" : `1px solid ${th.cardBorder}`,
-              }}
-            >
-              {allFilled ? t.simulateBtn : `Fill all 9 slots (${slots.filter(Boolean).length}/9)`}
-            </button>
-          </div>
-
+                {/* Up/Down arrows */}
+                <div style={{display:"flex", flexDirection:"column",
+                  borderLeft:`1px solid ${th.cardBorder}`}}>
+                  <button onClick={e=>{e.stopPropagation(); move(i,-1);}} disabled={i===0}
+                    style={{
+                      flex:1, width:40, border:"none",
+                      background: i===0 ? "transparent" : th.doneCard,
+                      color: i===0 ? th.textGhost : th.text,
+                      fontSize:16, cursor: i===0 ? "default" : "pointer",
+                      borderBottom:`1px solid ${th.cardBorder}`,
+                      touchAction:"manipulation",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                    }}>↑</button>
+                  <button onClick={e=>{e.stopPropagation(); move(i,1);}} disabled={i===order.length-1}
+                    style={{
+                      flex:1, width:40, border:"none",
+                      background: i===order.length-1 ? "transparent" : th.doneCard,
+                      color: i===order.length-1 ? th.textGhost : th.text,
+                      fontSize:16, cursor: i===order.length-1 ? "default" : "pointer",
+                      touchAction:"manipulation",
+                      display:"flex", alignItems:"center", justifyContent:"center",
+                    }}>↓</button>
+                </div>
+              </div>
+            );
+          })}
         </div>
+      </div>
+
+      {/* Fixed bottom CTA */}
+      <div style={{
+        position:"fixed", bottom:0, left:0, right:0,
+        padding:"12px 16px", paddingBottom:"calc(12px + env(safe-area-inset-bottom))",
+        background: th.headerBg, backdropFilter:"blur(12px)",
+        borderTop:`1px solid ${th.cardBorder}`,
+      }}>
+        <button onClick={() => onComplete(order)} style={{
+          ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
+          width:"100%", fontSize:16, padding:"15px", borderRadius:12,
+        }}>{t.simulateBtn}</button>
       </div>
     </div>
   );
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-// RESULT
+// RESULT — mobile: vertical layout, scrollable stats
 // ══════════════════════════════════════════════════════════════════════════════
 function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHtp, onRestart }) {
   const t  = T[lang];
   const th = getTheme(theme);
   const S  = makeS(th);
+  const [tab, setTab] = useState("leaders"); // leaders | season | career
 
-  // Safety net — root guarantees both are non-null before mounting ResultPhase
   if (!lineup || !simResult) return null;
 
-  const wc = winColor(simResult.wins);
-  const ps = simResult.playerStats || [];
-  const [sh0,sh1,sh2,sh3,sh4,sh5,sh6,sh7,sh8,sh9,sh10] = t.seasonStatsHeaders;
+  const wc  = winColor(simResult.wins);
+  const ps  = simResult.playerStats || [];
 
-  // Compute leaders
-  const leaders = (t.leaders || []).map(ld => {
-    const best = ps.reduce((acc, p) => {
-      const val = parseFloat(p[ld.key]) || 0;
-      return val > (parseFloat(acc[ld.key]) || 0) ? p : acc;
-    }, ps[0] || {});
-    const val = best ? best[ld.key] : "—";
-    return { ...ld, player: best, value: val };
+  const leaders = (t.leaders||[]).map(ld => {
+    const best = ps.reduce((acc,p) => {
+      return (parseFloat(p[ld.key])||0) > (parseFloat(acc[ld.key])||0) ? p : acc;
+    }, ps[0]||{});
+    return {...ld, player:best, value: best?best[ld.key]:"—"};
   });
 
   return (
     <div style={S.app}>
-      <div style={S.header}>
+      {/* Header */}
+      <div style={{...S.header,padding:"10px 16px"}}>
         <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
-        <div style={{display:"flex", gap:10, alignItems:"center"}}>
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
           <LangSelect lang={lang} setLang={setLang} t={t} th={th}/>
-          <button onClick={showHtp} style={{...S.ghostBtn, fontSize:12}}>❓ {t.howToPlayBtn}</button>
           <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
-          <button onClick={onRestart} style={S.ghostBtn}>{t.newGame}</button>
+          <button onClick={showHtp} style={{...S.ghostBtn,fontSize:13}}>❓</button>
+          <button onClick={onRestart} style={{...S.ghostBtn,fontSize:12}}>{t.newGame}</button>
         </div>
       </div>
 
-      <div style={{maxWidth:900, margin:"0 auto", padding:"24px 16px"}}>
-
-        {/* ── Win/Loss banner ── */}
-        <div style={{textAlign:"center", marginBottom:28}}>
-          <div style={{fontSize:11, letterSpacing:3, color:th.textDim, marginBottom:8}}>{t.resultTitle}</div>
-          <div style={{fontSize:76, fontWeight:900, color:wc, lineHeight:1, letterSpacing:-2}}>
+      <div style={{padding:"20px 14px 40px"}}>
+        {/* Win/Loss hero */}
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:11,letterSpacing:3,color:th.textDim,marginBottom:6}}>
+            {t.resultTitle}
+          </div>
+          <div style={{fontSize:72,fontWeight:900,color:wc,lineHeight:1,letterSpacing:-2}}>
             {simResult.wins}
-            <span style={{fontSize:24, color:th.textFaint, letterSpacing:0}}>-{162 - simResult.wins}</span>
+            <span style={{fontSize:22,color:th.textFaint,letterSpacing:0}}>
+              -{162-simResult.wins}
+            </span>
           </div>
-          <div style={{fontSize:13, color:th.textMuted, marginTop:6}}>
+          <div style={{fontSize:13,color:th.textMuted,marginTop:6}}>
             {simResult.rpg} {t.rpgLabel}
-            {" · "}
-            <span style={{color:th.textDim}}>{simResult.totalRuns?.toLocaleString()} total runs</span>
           </div>
-          <div style={{fontSize:17, color:wc, fontWeight:600, marginTop:10}}>{winLabel(simResult.wins, t)}</div>
+          <div style={{fontSize:15,color:wc,fontWeight:700,marginTop:8}}>
+            {winLabel(simResult.wins,t)}
+          </div>
         </div>
 
-        {/* ── Season Leaders grid ── */}
-        {ps.length > 0 && (
-          <div style={{marginBottom:24}}>
-            <div style={{fontSize:11, letterSpacing:2, color:th.textDim, marginBottom:12}}>{t.seasonLeaders}</div>
-            <div style={{display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:8}}>
-              {leaders.map((ld, i) => (
-                <div key={i} style={{
-                  background: th.card,
-                  border: `1px solid ${th.cardBorder}`,
-                  borderRadius: 10, padding:"12px 14px",
-                  borderTop: `3px solid ${ld.color}`,
-                }}>
-                  <div style={{display:"flex", alignItems:"center", gap:6, marginBottom:6}}>
-                    <span style={{fontSize:16}}>{ld.icon}</span>
-                    <span style={{fontSize:10, color:th.textDim, letterSpacing:1, fontWeight:600}}>{ld.label.toUpperCase()}</span>
-                  </div>
-                  <div style={{fontSize:22, fontWeight:900, color:ld.color, lineHeight:1, marginBottom:4}}>
-                    {String(ld.value).startsWith("0.") ? ld.value : ld.value}
-                  </div>
-                  <div style={{fontSize:12, fontWeight:600, color:th.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
-                    {ld.player?.name || "—"}
-                  </div>
-                  <div style={{fontSize:10, color:th.textDim}}>{ld.player?.pos} · {ld.player?.era}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Tab bar */}
+        <div style={{display:"flex",gap:6,marginBottom:16,
+          background:th.tableHead,borderRadius:10,padding:4}}>
+          {[["leaders","🏆"],["season","📊"],["career","📋"]].map(([key,icon])=>(
+            <button key={key} onClick={()=>setTab(key)} style={{
+              flex:1,padding:"9px 4px",borderRadius:8,border:"none",
+              background:tab===key?"#dc2626":t.transparent,
+              color:tab===key?"#fff":th.textMuted,
+              fontSize:12,fontWeight:tab===key?700:400,cursor:"pointer",
+              touchAction:"manipulation",transition:"all 0.15s",
+            }}>{icon} {key==="leaders"?t.seasonLeaders?.split(" ")[0]||"Leaders":key==="season"?"Stats":"Career"}</button>
+          ))}
+        </div>
 
-        {/* ── Full season stats table ── */}
-        {ps.length > 0 && (
-          <div style={{marginBottom:24}}>
-            <div style={{fontSize:11, letterSpacing:2, color:th.textDim, marginBottom:10}}>{t.seasonStatsTitle}</div>
-            <div style={{background:th.legend, border:`1px solid ${th.tableBorder}`, borderRadius:12, overflow:"hidden"}}>
-              {/* Header */}
-              <div style={{
-                padding:"8px 14px", background:th.tableHead,
-                borderBottom:`1px solid ${th.tableBorder}`,
-                display:"grid",
-                gridTemplateColumns:"22px 1fr 32px 40px 40px 40px 44px 40px 40px 52px 52px",
-                gap:6, fontSize:10, letterSpacing:1, color:th.textDim,
+        {/* LEADERS TAB */}
+        {tab==="leaders" && ps.length>0 && (
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+            {leaders.map((ld,i)=>(
+              <div key={i} style={{
+                background:th.card,border:`1px solid ${th.cardBorder}`,
+                borderRadius:12,padding:"12px",
+                borderTop:`3px solid ${ld.color}`,
               }}>
-                {[sh0,sh1,sh2,sh3,sh4,sh5,sh6,sh7,sh8,sh9,sh10].map((h,i)=>(
-                  <div key={i} style={{textAlign: i>2?"center":"left"}}>{h}</div>
-                ))}
-              </div>
-              {/* Rows — sorted by batting order */}
-              {ps.map((p, i) => (
-                <div key={i} style={{
-                  padding:"9px 14px",
-                  borderBottom:`1px solid ${th.rowBorder}`,
-                  display:"grid",
-                  gridTemplateColumns:"22px 1fr 32px 40px 40px 40px 44px 40px 40px 52px 52px",
-                  gap:6, alignItems:"center",
-                }}>
-                  <div style={{fontSize:12, fontWeight:700, color:"#dc2626"}}>{i+1}</div>
-                  <div>
-                    <div style={{fontWeight:600, fontSize:13, color:th.text, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>{p.name}</div>
-                    <div style={{fontSize:10, color:"#fbbf24"}}>{p.era}</div>
-                  </div>
-                  <div style={{fontSize:10, color:th.textDim, fontFamily:"monospace", textAlign:"center"}}>{p.pos}</div>
-                  {/* R */}
-                  <div style={{textAlign:"center", fontSize:13, fontWeight: p.R===Math.max(...ps.map(x=>x.R))?700:400, color: p.R===Math.max(...ps.map(x=>x.R))?"#22c55e":th.textMuted}}>{p.R}</div>
-                  {/* H */}
-                  <div style={{textAlign:"center", fontSize:13, fontWeight: p.H===Math.max(...ps.map(x=>x.H))?700:400, color: p.H===Math.max(...ps.map(x=>x.H))?"#3b82f6":th.textMuted}}>{p.H}</div>
-                  {/* HR */}
-                  <div style={{textAlign:"center", fontSize:13, fontWeight: p.HR===Math.max(...ps.map(x=>x.HR))?700:400, color: p.HR===Math.max(...ps.map(x=>x.HR))?"#dc2626":th.textMuted}}>{p.HR}</div>
-                  {/* RBI */}
-                  <div style={{textAlign:"center", fontSize:13, fontWeight: p.RBI===Math.max(...ps.map(x=>x.RBI))?700:400, color: p.RBI===Math.max(...ps.map(x=>x.RBI))?"#f97316":th.textMuted}}>{p.RBI}</div>
-                  {/* BB */}
-                  <div style={{textAlign:"center", fontSize:13, color:th.textMuted}}>{p.BB}</div>
-                  {/* SB */}
-                  <div style={{textAlign:"center", fontSize:13, color:th.textMuted}}>{p.SB}</div>
-                  {/* AVG */}
-                  <div style={{textAlign:"center", fontSize:12, fontFamily:"monospace", color:"#a78bfa"}}>{p.AVG}</div>
-                  {/* OBP */}
-                  <div style={{textAlign:"center", fontSize:12, fontFamily:"monospace", color:"#fbbf24"}}>{p.OBP}</div>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+                  <span style={{fontSize:18}}>{ld.icon}</span>
+                  <span style={{fontSize:9,color:th.textDim,letterSpacing:1,fontWeight:600}}>
+                    {ld.label.toUpperCase()}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── Lineup card stats (career) ── */}
-        <div style={{marginBottom:24}}>
-          <div style={{fontSize:11, letterSpacing:2, color:th.textDim, marginBottom:10}}>CAREER STATS</div>
-          <div style={{background:th.legend, border:`1px solid ${th.tableBorder}`, borderRadius:12, overflow:"hidden"}}>
-            <div style={{padding:"8px 14px", background:th.tableHead, borderBottom:`1px solid ${th.tableBorder}`, display:"grid", gridTemplateColumns:"22px 30px 1fr 58px 58px 58px 50px", gap:8, fontSize:10, letterSpacing:1, color:th.textDim}}>
-              <div>#</div><div>POS</div><div>{t.seasonStatsHeaders[1]}</div>
-              <div style={{textAlign:"center"}}>OBP</div>
-              <div style={{textAlign:"center"}}>SLG</div>
-              <div style={{textAlign:"center"}}>{t.colHeaders[5]}</div>
-              <div style={{textAlign:"center"}}>{t.colHeaders[6]}</div>
-            </div>
-            {lineup.map((p, i) => (
-              <div key={i} style={{padding:"9px 14px", borderBottom:`1px solid ${th.rowBorder}`, display:"grid", gridTemplateColumns:"22px 30px 1fr 58px 58px 58px 50px", gap:8, alignItems:"center"}}>
-                <div style={{fontSize:13, fontWeight:900, color:"#dc2626"}}>{i+1}</div>
-                <div style={{fontSize:10, color:th.textDim, fontFamily:"monospace"}}>{p.pos}</div>
-                <div>
-                  <div style={{fontWeight:600, fontSize:13, color:th.text}}>{p.name}</div>
-                  <div style={{fontSize:10, color:"#fbbf24"}}>{p.era}</div>
+                <div style={{fontSize:24,fontWeight:900,color:ld.color,lineHeight:1,marginBottom:4}}>
+                  {ld.value}
                 </div>
-                <div style={{textAlign:"center", fontSize:13, color:"#3b82f6"}}>{p.obp}</div>
-                <div style={{textAlign:"center", fontSize:13, color:"#dc2626"}}>{p.slg}</div>
-                <div style={{textAlign:"center", fontSize:13, color:"#22c55e"}}>{p.avg}</div>
-                <div style={{textAlign:"center", fontSize:13, color:"#f59e0b"}}>{p.sb}</div>
+                <div style={{fontSize:12,fontWeight:600,color:th.text,
+                  whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                  {ld.player?.name||"—"}
+                </div>
+                <div style={{fontSize:10,color:th.textDim}}>
+                  {ld.player?.pos} · {ld.player?.era}
+                </div>
               </div>
             ))}
           </div>
+        )}
+
+        {/* SEASON STATS TAB */}
+        {tab==="season" && ps.length>0 && (
+          <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+              <thead>
+                <tr style={{background:th.tableHead}}>
+                  {["#","PLAYER","R","H","HR","RBI","AVG"].map(h=>(
+                    <th key={h} style={{padding:"8px 6px",textAlign:h==="PLAYER"?"left":"center",
+                      color:th.textDim,fontWeight:600,fontSize:10,whiteSpace:"nowrap",
+                      borderBottom:`1px solid ${th.tableBorder}`}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {ps.map((p,i)=>{
+                  const maxHR = Math.max(...ps.map(x=>x.HR));
+                  const maxR  = Math.max(...ps.map(x=>x.R));
+                  return (
+                    <tr key={i} style={{borderBottom:`1px solid ${th.rowBorder}`}}>
+                      <td style={{padding:"8px 6px",color:"#dc2626",fontWeight:700,textAlign:"center"}}>{i+1}</td>
+                      <td style={{padding:"8px 6px"}}>
+                        <div style={{fontWeight:600,color:th.text,whiteSpace:"nowrap"}}>{p.name}</div>
+                        <div style={{fontSize:10,color:"#fbbf24"}}>{p.era}</div>
+                      </td>
+                      <td style={{padding:"8px 6px",textAlign:"center",
+                        color:p.R===maxR?"#22c55e":th.textMuted,
+                        fontWeight:p.R===maxR?700:400}}>{p.R}</td>
+                      <td style={{padding:"8px 6px",textAlign:"center",color:th.textMuted}}>{p.H}</td>
+                      <td style={{padding:"8px 6px",textAlign:"center",
+                        color:p.HR===maxHR?"#dc2626":th.textMuted,
+                        fontWeight:p.HR===maxHR?700:400}}>{p.HR}</td>
+                      <td style={{padding:"8px 6px",textAlign:"center",color:th.textMuted}}>{p.RBI}</td>
+                      <td style={{padding:"8px 6px",textAlign:"center",color:"#a78bfa",fontFamily:"monospace"}}>{p.AVG}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {/* CAREER STATS TAB */}
+        {tab==="career" && (
+          <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+              <thead>
+                <tr style={{background:th.tableHead}}>
+                  {["#","PLAYER","OBP","SLG","AVG"].map(h=>(
+                    <th key={h} style={{padding:"8px 6px",textAlign:h==="PLAYER"?"left":"center",
+                      color:th.textDim,fontWeight:600,fontSize:10,whiteSpace:"nowrap",
+                      borderBottom:`1px solid ${th.tableBorder}`}}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {lineup.map((p,i)=>(
+                  <tr key={i} style={{borderBottom:`1px solid ${th.rowBorder}`}}>
+                    <td style={{padding:"8px 6px",color:"#dc2626",fontWeight:700,textAlign:"center"}}>{i+1}</td>
+                    <td style={{padding:"8px 6px"}}>
+                      <div style={{fontWeight:600,color:th.text,whiteSpace:"nowrap"}}>{p.name}</div>
+                      <div style={{fontSize:10,color:"#fbbf24"}}>{p.era} · {p.pos}</div>
+                    </td>
+                    <td style={{padding:"8px 6px",textAlign:"center",color:"#3b82f6",fontFamily:"monospace"}}>{p.obp}</td>
+                    <td style={{padding:"8px 6px",textAlign:"center",color:"#dc2626",fontFamily:"monospace"}}>{p.slg}</td>
+                    <td style={{padding:"8px 6px",textAlign:"center",color:"#22c55e",fontFamily:"monospace"}}>{p.avg}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        <button onClick={onRestart} style={{
+          ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
+          width:"100%",fontSize:16,padding:"16px",borderRadius:12,marginTop:24,
+        }}>{t.playAgain}</button>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// HOW TO PLAY — mobile modal, scrollable
+// ══════════════════════════════════════════════════════════════════════════════
+function HowToPlay({ t, th, onClose }) {
+  const h = t.htp;
+  return (
+    <div style={{position:"fixed",inset:0,zIndex:1000,background:"rgba(0,0,0,0.7)",
+      backdropFilter:"blur(4px)",overflowY:"auto",WebkitOverflowScrolling:"touch"}}
+      onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:th.modalBg,borderRadius:"16px 16px 0 0",
+        margin:"60px 0 0 0",minHeight:"calc(100vh - 60px)",padding:"20px 16px 40px",
+        border:`1px solid ${th.modalBorder}`,
+      }}>
+        {/* Handle bar */}
+        <div style={{width:40,height:4,background:th.cardBorder,borderRadius:2,
+          margin:"0 auto 16px",cursor:"pointer"}} onClick={onClose}/>
+
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <div style={{fontSize:20,fontWeight:700,color:th.text}}>⚾ {h.title}</div>
+          <button onClick={onClose} style={{background:"transparent",border:"none",
+            color:th.textDim,fontSize:24,cursor:"pointer",padding:"0 4px"}}>{h.close}</button>
         </div>
 
-        <div style={{textAlign:"center", marginBottom:16}}>
-          <button onClick={onRestart} style={S.btn("linear-gradient(135deg,#dc2626,#991b1b)")}>{t.playAgain}</button>
+        {/* Phases */}
+        <div style={{marginBottom:20}}>
+          {h.phases.map((p,i)=>(
+            <div key={i} style={{display:"flex",gap:12,marginBottom:12,padding:"12px",
+              background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:10}}>
+              <div style={{fontSize:22,flexShrink:0}}>{p.icon}</div>
+              <div>
+                <div style={{fontWeight:700,fontSize:14,color:th.text,marginBottom:4}}>{p.title}</div>
+                <div style={{fontSize:13,color:th.textMuted,lineHeight:1.6}}>{p.body}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
+        {/* Scoring */}
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>
+            {h.scoring.title.toUpperCase()}
+          </div>
+          {h.scoring.items.map((item,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
+              <div style={{minWidth:36,fontWeight:700,fontSize:12,color:item.color,fontFamily:"monospace"}}>{item.stat}</div>
+              <div style={{flex:1,height:4,background:th.statBar,borderRadius:2}}>
+                <div style={{height:"100%",width:`${50+i*10}%`,background:item.color,borderRadius:2}}/>
+              </div>
+              <div style={{fontSize:11,color:th.textMuted,flex:2,lineHeight:1.4}}>{item.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Win targets */}
+        <div style={{marginBottom:20}}>
+          <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>
+            {h.wins.title.toUpperCase()}
+          </div>
+          {h.wins.items.map((w,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 12px",
+              background:th.card,border:`1px solid ${th.cardBorder}`,borderRadius:8,marginBottom:6}}>
+              <div style={{fontSize:13,fontWeight:800,color:w.color,minWidth:36,fontFamily:"monospace"}}>{w.threshold}</div>
+              <div style={{fontSize:12,color:th.textMuted}}>{w.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Tips */}
+        <div>
+          <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:th.textDim,marginBottom:10}}>
+            {h.tips.title.toUpperCase()}
+          </div>
+          {h.tips.items.map((tip,i)=>(
+            <div key={i} style={{display:"flex",gap:8,marginBottom:10}}>
+              <div style={{color:"#dc2626",flexShrink:0}}>▸</div>
+              <div style={{fontSize:13,color:th.textMuted,lineHeight:1.6}}>{tip}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -1538,8 +1409,7 @@ export default function TheLineup() {
   const [theme,      setTheme]      = useState("dark");
   const [showHtp,    setShowHtp]    = useState(false);
   const [roster,     setRoster]     = useState(null);
-  // Store lineup + simResult together so they're always in sync
-  const [gameResult, setGameResult] = useState(null); // { lineup, simResult }
+  const [gameResult, setGameResult] = useState(null);
 
   const t  = T[lang];
   const th = getTheme(theme);
@@ -1547,34 +1417,24 @@ export default function TheLineup() {
   const handleStart   = m => { setMode(m); setPhase("draft"); };
   const handleDraft   = r => { setRoster(r); setPhase("order"); };
   const handleOrder   = o => {
-    // Compute and commit everything in ONE state update, then change phase
     const result = simulateSeason(o);
     setGameResult({ lineup: o, simResult: result });
     setPhase("result");
   };
-  const handleRestart = () => {
-    setPhase("intro");
-    setRoster(null);
-    setGameResult(null);
-  };
+  const handleRestart = () => { setPhase("intro"); setRoster(null); setGameResult(null); };
   const openHtp  = () => setShowHtp(true);
   const closeHtp = () => setShowHtp(false);
-
   const shared = { lang, setLang, theme, setTheme, showHtp: openHtp };
 
   return (
     <ErrorBoundary>
       {showHtp && <HowToPlay t={t} th={th} onClose={closeHtp}/>}
-      {phase === "intro"  && <IntroPhase onStart={handleStart} {...shared}/>}
-      {phase === "draft"  && <DraftPhase mode={mode} {...shared} onComplete={handleDraft}/>}
-      {phase === "order"  && <OrderPhase roster={roster} mode={mode} {...shared} onComplete={handleOrder}/>}
-      {phase === "result" && gameResult  && (
-        <ResultPhase
-          lineup={gameResult.lineup}
-          simResult={gameResult.simResult}
-          {...shared}
-          onRestart={handleRestart}
-        />
+      {phase==="intro"  && <IntroPhase  onStart={handleStart}  {...shared}/>}
+      {phase==="draft"  && <DraftPhase  mode={mode}            {...shared} onComplete={handleDraft}/>}
+      {phase==="order"  && <OrderPhase  roster={roster} mode={mode} {...shared} onComplete={handleOrder}/>}
+      {phase==="result" && gameResult && (
+        <ResultPhase lineup={gameResult.lineup} simResult={gameResult.simResult}
+          {...shared} onRestart={handleRestart}/>
       )}
     </ErrorBoundary>
   );
