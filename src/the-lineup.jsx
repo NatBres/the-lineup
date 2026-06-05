@@ -96,6 +96,16 @@ const T = {
     howToPlayBtn: "How to Play",
     donateBtn: "☕ Buy me a coffee",
     donateMsg: "Enjoying the game? Support it!",
+    shareBtn: "📤 Share my lineup",
+    shareTitle: "My Lineup — The Lineup",
+    shareCopied: "✓ Copied to clipboard!",
+    hofTitle: "🏆 Hall of Fame",
+    hofEmpty: "No lineups saved yet. Play a game to set your first record!",
+    hofBest: "Personal Best",
+    hofSave: "Save to Hall of Fame",
+    hofSaved: "✓ Saved!",
+    hofClear: "Clear",
+    anecdoteTitle: "Did you know?",
     htp: {
       title: "How to Play",
       close: "✕ Close",
@@ -237,6 +247,16 @@ const T = {
     howToPlayBtn: "Comment jouer",
     donateBtn: "☕ Offre-moi un café",
     donateMsg: "Le jeu te plaît ? Soutiens-le !",
+    shareBtn: "📤 Partager mon lineup",
+    shareTitle: "Mon Lineup — The Lineup",
+    shareCopied: "✓ Copié dans le presse-papier !",
+    hofTitle: "🏆 Hall of Fame",
+    hofEmpty: "Aucun lineup sauvegardé. Joue une partie pour établir ton premier record !",
+    hofBest: "Meilleur perso",
+    hofSave: "Sauvegarder",
+    hofSaved: "✓ Sauvegardé !",
+    hofClear: "Effacer",
+    anecdoteTitle: "Le savais-tu ?",
     htp: {
       title: "Comment jouer",
       close: "✕ Fermer",
@@ -378,6 +398,16 @@ const T = {
     howToPlayBtn: "Cómo jugar",
     donateBtn: "☕ Invítame un café",
     donateMsg: "¿Disfrutando el juego? ¡Apóyalo!",
+    shareBtn: "📤 Compartir mi lineup",
+    shareTitle: "Mi Lineup — The Lineup",
+    shareCopied: "✓ ¡Copiado al portapapeles!",
+    hofTitle: "🏆 Hall of Fame",
+    hofEmpty: "Sin lineups guardados. ¡Juega una partida para establecer tu primer récord!",
+    hofBest: "Mejor personal",
+    hofSave: "Guardar",
+    hofSaved: "✓ ¡Guardado!",
+    hofClear: "Borrar",
+    anecdoteTitle: "¿Sabías que?",
     htp: {
       title: "Cómo jugar",
       close: "✕ Cerrar",
@@ -476,6 +506,45 @@ function getEra(name) {
   for (const [era, arr] of Object.entries(PLAYERS))
     if (arr.some(p => p.name === name)) return era;
   return "";
+}
+
+
+// ── Player anecdotes ─────────────────────────────────────────────────────────
+const ANECDOTES = {
+  "Babe Ruth":        { en:"Ruth started his career as a pitcher and had a 2.28 ERA before switching to outfield. He hit 714 HR — a record that stood for 39 years.", fr:"Ruth a commencé comme lanceur avec une ERA de 2.28 avant de devenir frappeur. Ses 714 HR ont constitué un record pendant 39 ans.", es:"Ruth comenzó como pitcher con 2.28 ERA antes de convertirse en bateador. Sus 714 jonrones fueron récord durante 39 años." },
+  "Ted Williams":     { en:"Williams was the last player to bat .400, hitting .406 in 1941. He also missed nearly 5 seasons serving as a fighter pilot in two wars.", fr:"Williams est le dernier joueur à avoir frappé .400 (en 1941). Il a aussi manqué près de 5 saisons comme pilote de chasse dans deux guerres.", es:"Williams fue el último en batear .400 (1941). Perdió casi 5 temporadas como piloto de caza en dos guerras." },
+  "Lou Gehrig":       { en:"Gehrig played 2,130 consecutive games, earning the nickname 'Iron Horse'. He retired at 36 after being diagnosed with ALS, the disease that now bears his name.", fr:"Gehrig a joué 2 130 matchs consécutifs. Il a pris sa retraite à 36 ans après un diagnostic de SLA, maladie qui porte désormais son nom.", es:"Gehrig jugó 2.130 partidos consecutivos. Se retiró a los 36 tras ser diagnosticado con ELA, enfermedad que lleva su nombre." },
+  "Willie Mays":      { en:"Mays' 'The Catch' in the 1954 World Series is considered the greatest defensive play in baseball history — a full-speed, over-the-shoulder grab at the warning track.", fr:"La 'The Catch' de Mays en 1954 est considérée comme la meilleure action défensive de l'histoire du baseball.", es:"El 'The Catch' de Mays en 1954 es considerada la mejor jugada defensiva en la historia del béisbol." },
+  "Mickey Mantle":    { en:"Mantle hit a 565-foot home run in 1953 — still one of the longest ever measured. He played most of his career on a severely damaged knee.", fr:"Mantle a frappé un home run de 172 mètres en 1953, l'un des plus longs jamais mesurés. Il a joué la plupart de sa carrière avec un genou gravement endommagé.", es:"Mantle bateó un jonrón de 172 metros en 1953. Jugó casi toda su carrera con una rodilla gravemente dañada." },
+  "Hank Aaron":       { en:"Aaron received death threats before breaking Ruth's HR record in 1974. He hit his 715th HR on April 8, 1974, and finished with 755.", fr:"Aaron a reçu des menaces de mort avant de battre le record de Ruth en 1974. Il a terminé avec 755 HR.", es:"Aaron recibió amenazas de muerte antes de superar el récord de Ruth en 1974. Terminó con 755 jonrones." },
+  "Barry Bonds":      { en:"Bonds' 2001 season is statistically the greatest offensive season ever: .863 SLG, .515 OBP, 73 HR. He was intentionally walked 120 times that year.", fr:"La saison 2001 de Bonds est statistiquement la meilleure offensive de tous les temps: .863 SLG, .515 OBP, 73 HR.", es:"La temporada 2001 de Bonds es estadísticamente la mejor ofensiva de la historia: .863 SLG, .515 OBP, 73 HR." },
+  "Rogers Hornsby":   { en:"Hornsby batted .424 in 1924 — the highest single-season average in modern baseball history. He refused to watch movies to protect his eyesight.", fr:"Hornsby a frappé .424 en 1924, la meilleure moyenne sur une saison dans l'histoire moderne. Il refusait de regarder des films pour protéger sa vue.", es:"Hornsby bateó .424 en 1924, el mejor promedio de una temporada en la historia moderna. Se negaba a ver películas para proteger su visión." },
+  "Ty Cobb":          { en:"Cobb's .366 career batting average is the highest in MLB history. He stole home 54 times and held the stolen base record for 47 years.", fr:"La moyenne de carrière de Cobb (.366) est la plus élevée de l'histoire de la MLB. Il a volé le marbre 54 fois.", es:"El promedio de carrera de Cobb (.366) es el más alto en la historia de la MLB. Robó home 54 veces." },
+  "Honus Wagner":     { en:"Wagner's 1909 baseball card (T206) sold for $7.25 million in 2021, making it the most valuable sports card ever. He demanded it be pulled from production himself.", fr:"La carte baseball 1909 de Wagner (T206) s'est vendue 7,25 millions de dollars en 2021. Il avait lui-même exigé qu'elle soit retirée de la production.", es:"La tarjeta de béisbol de 1909 de Wagner se vendió por 7,25 millones de dólares en 2021. Él mismo exigió que se retirara de la producción." },
+  "Joe Morgan":       { en:"Morgan's 'chicken flap' elbow pump became one of baseball's most iconic batting stances. He won back-to-back MVP awards in 1975–76 with the Big Red Machine.", fr:"Le mouvement de coude de Morgan est l'une des postures les plus iconiques du baseball. Il a remporté deux MVP consécutifs en 1975-76.", es:"El movimiento del codo de Morgan es una de las posturas más icónicas del béisbol. Ganó dos MVP consecutivos en 1975-76." },
+  "Mike Trout":       { en:"Trout won AL MVP 3 times before turning 29. His career WAR pace through age 29 is the highest of any position player in baseball history.", fr:"Trout a remporté 3 fois le MVP AL avant ses 29 ans. Son rythme de WAR de carrière est le plus élevé de l'histoire pour un joueur de position.", es:"Trout ganó 3 veces el MVP de la AL antes de los 29 años. Su ritmo de WAR de carrera es el más alto de la historia." },
+  "Shohei Ohtani":    { en:"Ohtani is the only player since Babe Ruth to be a legitimate ace pitcher AND a power-hitting cleanup batter at the same time, making him perhaps the greatest two-way player ever.", fr:"Ohtani est le seul joueur depuis Ruth à être simultanément un excellent lanceur et un frappeur de puissance, le rendant peut-être le meilleur joueur bidirectionnel de tous les temps.", es:"Ohtani es el único jugador desde Ruth en ser simultáneamente un excelente pitcher y bateador de potencia, posiblemente el mejor jugador de doble función de la historia." },
+  "Alex Rodriguez":   { en:"A-Rod was the highest-paid player in baseball history, earning over $400 million in career contracts. He hit 696 HR — 3rd all-time.", fr:"A-Rod était le joueur le mieux payé de l'histoire du baseball avec plus de 400 millions de dollars de contrats. Il a frappé 696 HR.", es:"A-Rod fue el jugador mejor pagado de la historia con más de 400 millones en contratos. Bateó 696 jonrones, 3º de todos los tiempos." },
+  "Rickey Henderson": { en:"Henderson stole 1,406 bases — more than any player in history, and 468 more than the 2nd-place player. He was also a leadoff hitter with 297 career home runs.", fr:"Henderson a volé 1 406 bases, plus que tout autre joueur dans l'histoire. Il a aussi frappé 297 HR en tant que frappeur en tête de l'ordre.", es:"Henderson robó 1.406 bases, más que cualquier jugador en la historia. También bateó 297 jonrones como bateador inicial." },
+  "Stan Musial":      { en:"'Stan the Man' collected exactly 1,815 hits at home and 1,815 hits on the road. He was a 7-time batting champion and never received a single MVP vote below 4th place.", fr:"Musial a obtenu exactement 1 815 coups sûrs à domicile et 1 815 à l'extérieur. Il a remporté 7 titres de champion frappeur.", es:"Musial obtuvo exactamente 1.815 hits en casa y 1.815 de visitante. Ganó 7 títulos de bateo." },
+  "Mike Schmidt":     { en:"Schmidt won 10 Gold Gloves at 3B and hit 548 HR — widely considered the greatest third baseman in MLB history.", fr:"Schmidt a remporté 10 Gants d'or au 3B et frappé 548 HR. Il est largement considéré comme le meilleur troisième but de l'histoire.", es:"Schmidt ganó 10 Guantes de Oro en 3B y bateó 548 HR. Es considerado el mejor tercera base de la historia." },
+  "Josh Gibson":      { en:"Negro Leagues legend Josh Gibson reportedly hit over 800 home runs in his career. Some estimates put his batting average above .350 career.", fr:"La légende des Negro Leagues Josh Gibson aurait frappé plus de 800 home runs. Certaines estimations placent sa moyenne de carrière au-dessus de .350.", es:"La leyenda de las Ligas Negras Josh Gibson supuestamente bateó más de 800 jonrones. Su promedio de carrera se estima por encima de .350." },
+  "Johnny Bench":     { en:"Bench revolutionized catching with the one-handed catching technique. He was so dominant that he won the Gold Glove 10 consecutive years.", fr:"Bench a révolutionné la technique de réception à une main. Il a remporté le Gant d'or 10 années consécutives.", es:"Bench revolucionó la técnica de recepción con una mano. Ganó el Guante de Oro 10 años consecutivos." },
+  "Ken Griffey Jr.":  { en:"'The Kid' hit 630 career HR and was selected to 13 All-Star Games. He was elected to the Hall of Fame with 99.3% of the vote — the highest ever at the time.", fr:"'The Kid' a frappé 630 HR et a été sélectionné pour 13 All-Star Games. Il a été élu au Hall of Fame avec 99,3% des votes.", es:"'The Kid' bateó 630 HR y fue seleccionado para 13 Juegos de Estrellas. Fue elegido al Salón de la Fama con el 99,3% de los votos." },
+  "Pedro Martinez":   { en:"In 1999-2000, Pedro was so dominant that his ERA+ of 291 in 2000 is the highest single-season mark in baseball history. He once hit 3 batters intentionally to send a message.", fr:"En 1999-2000, Pedro était si dominant que son ERA+ de 291 en 2000 est le record de tous les temps sur une saison.", es:"En 1999-2000, Pedro fue tan dominante que su ERA+ de 291 en 2000 es el récord de todos los tiempos en una temporada." },
+  "Mariano Rivera":   { en:"Rivera threw almost exclusively the cutter — a pitch he discovered by accident. He's the only player unanimously elected to the Hall of Fame (100% of votes).", fr:"Rivera lançait presque exclusivement la balle coupée, qu'il a découverte par accident. Il est le seul joueur élu unanimement au Hall of Fame.", es:"Rivera lanzaba casi exclusivamente el cutter, que descubrió por accidente. Es el único jugador elegido unánimemente al Salón de la Fama." },
+  "Albert Pujols":    { en:"Pujols hit .330 or better in each of his first 10 seasons — a feat matched only by Ty Cobb and Rogers Hornsby in the live-ball era.", fr:"Pujols a frappé .330 ou mieux lors de chacune de ses 10 premières saisons, un exploit égalé seulement par Cobb et Hornsby.", es:"Pujols bateó .330 o mejor en cada una de sus primeras 10 temporadas, hazaña igualada solo por Cobb y Hornsby." },
+  "Wade Boggs":       { en:"Boggs was so disciplined at the plate that he ate chicken before every game — a ritual he maintained throughout his entire career. He batted .300 or better in 13 straight seasons.", fr:"Boggs mangeait du poulet avant chaque match — un rituel qu'il a maintenu toute sa carrière. Il a frappé .300 ou mieux 13 saisons consécutives.", es:"Boggs comía pollo antes de cada partido, ritual que mantuvo toda su carrera. Bateó .300 o mejor durante 13 temporadas consecutivas." },
+};
+
+// Get 1 random anecdote from a lineup (pick player with known anecdote)
+function getAnecdote(lineup, lang) {
+  if (!lineup) return null;
+  const withAnecdote = lineup.filter(p => ANECDOTES[p.name]);
+  if (!withAnecdote.length) return null;
+  const player = withAnecdote[Math.floor(Math.random() * withAnecdote.length)];
+  const fact = ANECDOTES[player.name];
+  return { name: player.name, text: fact[lang] || fact.en };
 }
 
 function simulateSeason(lineup) {
@@ -1173,97 +1242,239 @@ function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, onC
   );
 }
 
+
+// ── Hall of Fame (localStorage) ──────────────────────────────────────────────
+const HOF_KEY = "thelineup_hof";
+
+function hofLoad() {
+  try {
+    const data = localStorage.getItem(HOF_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch { return []; }
+}
+
+function hofSave(entries) {
+  try { localStorage.setItem(HOF_KEY, JSON.stringify(entries)); } catch {}
+}
+
+function hofAdd(lineup, simResult) {
+  const entries = hofLoad();
+  const entry = {
+    date: new Date().toLocaleDateString(),
+    wins: simResult.wins,
+    rpg: simResult.rpg,
+    players: lineup.map(p => ({ name: p.name, pos: p.pos, era: p.era })),
+  };
+  // Keep only top 5 by wins
+  entries.push(entry);
+  entries.sort((a, b) => b.wins - a.wins);
+  const top5 = entries.slice(0, 5);
+  hofSave(top5);
+  return top5;
+}
+
 // ══════════════════════════════════════════════════════════════════════════════
-// RESULT — mobile: vertical layout, scrollable stats
+// RESULT — share + anecdote + hall of fame + stats
 // ══════════════════════════════════════════════════════════════════════════════
 function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHtp, onRestart }) {
-  const t  = T[lang];
-  const th = getTheme(theme);
-  const S  = makeS(th);
-  const [tab, setTab] = useState("leaders"); // leaders | season | career
+  const t   = T[lang];
+  const th  = getTheme(theme);
+  const S   = makeS(th);
+  const [tab,       setTab]       = useState("leaders");
+  const [copied,    setCopied]    = useState(false);
+  const [hofList,   setHofList]   = useState(() => hofLoad());
+  const [hofSaved,  setHofSaved]  = useState(false);
+  const [anecdote]                = useState(() => getAnecdote(lineup, lang));
 
   if (!lineup || !simResult) return null;
 
-  const wc  = winColor(simResult.wins);
-  const ps  = simResult.playerStats || [];
+  const wc      = winColor(simResult.wins);
+  const ps      = simResult.playerStats || [];
+  const maxHR   = ps.length ? Math.max(...ps.map(x=>x.HR)) : 0;
+  const maxR    = ps.length ? Math.max(...ps.map(x=>x.R))  : 0;
 
   const leaders = (t.leaders||[]).map(ld => {
-    const best = ps.reduce((acc,p) => {
-      return (parseFloat(p[ld.key])||0) > (parseFloat(acc[ld.key])||0) ? p : acc;
-    }, ps[0]||{});
+    const best = ps.reduce((acc,p) =>
+      (parseFloat(p[ld.key])||0) > (parseFloat(acc[ld.key])||0) ? p : acc,
+      ps[0]||{});
     return {...ld, player:best, value: best?best[ld.key]:"—"};
   });
+
+  // ── Share ──────────────────────────────────────────────────────────────────
+  function handleShare() {
+    const label = winLabel(simResult.wins, t).replace(/[🏆🔥✅⚠️❌]/g,"").trim();
+    const lines = [
+      `⚾ The Lineup — ${simResult.wins}-${162-simResult.wins}`,
+      `${simResult.rpg} runs/game · ${label}`,
+      ``,
+      ...lineup.map((p,i) => `${i+1}. ${p.name} (${p.pos})`),
+      ``,
+      `🔗 thelineup.vercel.app`,
+    ];
+    const text = lines.join("\n");
+    if (navigator.share) {
+      navigator.share({ title: t.shareTitle, text }).catch(()=>{});
+    } else {
+      navigator.clipboard?.writeText(text).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2500);
+      });
+    }
+  }
+
+  // ── Save to HoF ────────────────────────────────────────────────────────────
+  function handleHofSave() {
+    const updated = hofAdd(lineup, simResult);
+    setHofList(updated);
+    setHofSaved(true);
+    setTimeout(() => setHofSaved(false), 2000);
+  }
 
   return (
     <div style={S.app}>
       {/* Header */}
-      <div style={{...S.header,padding:"10px 16px"}}>
+      <div style={{...S.header, padding:"10px 16px"}}>
         <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
-        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+        <div style={{display:"flex", gap:6, alignItems:"center"}}>
           <LangSelect lang={lang} setLang={setLang} t={t} th={th}/>
           <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
-          <button onClick={showHtp} style={{...S.ghostBtn,fontSize:13}}>❓</button>
-          <button onClick={onRestart} style={{...S.ghostBtn,fontSize:12}}>{t.newGame}</button>
+          <button onClick={showHtp} style={{...S.ghostBtn, fontSize:13}}>❓</button>
+          <button onClick={onRestart} style={{...S.ghostBtn, fontSize:12}}>{t.newGame}</button>
         </div>
       </div>
 
-      <div style={{padding:"20px 14px 80px"}}>
-        {/* Win/Loss hero */}
-        <div style={{textAlign:"center",marginBottom:20}}>
-          <div style={{fontSize:11,letterSpacing:3,color:th.textDim,marginBottom:6}}>
+      <div style={{padding:"16px 14px 90px"}}>
+
+        {/* ── Win/Loss hero ── */}
+        <div style={{textAlign:"center", marginBottom:16}}>
+          <div style={{fontSize:11, letterSpacing:3, color:th.textDim, marginBottom:4}}>
             {t.resultTitle}
           </div>
-          <div style={{fontSize:72,fontWeight:900,color:wc,lineHeight:1,letterSpacing:-2}}>
+          <div style={{fontSize:70, fontWeight:900, color:wc, lineHeight:1, letterSpacing:-2}}>
             {simResult.wins}
-            <span style={{fontSize:22,color:th.textFaint,letterSpacing:0}}>
+            <span style={{fontSize:20, color:th.textFaint, letterSpacing:0}}>
               -{162-simResult.wins}
             </span>
           </div>
-          <div style={{fontSize:13,color:th.textMuted,marginTop:6}}>
+          <div style={{fontSize:13, color:th.textMuted, marginTop:4}}>
             {simResult.rpg} {t.rpgLabel}
           </div>
-          <div style={{fontSize:15,color:wc,fontWeight:700,marginTop:8}}>
-            {winLabel(simResult.wins,t)}
+          <div style={{fontSize:15, color:wc, fontWeight:700, marginTop:6}}>
+            {winLabel(simResult.wins, t)}
           </div>
         </div>
 
-        {/* Tab bar */}
-        <div style={{display:"flex",gap:6,marginBottom:16,
-          background:th.tableHead,borderRadius:10,padding:4}}>
+        {/* ── Action buttons: Share + Save ── */}
+        <div style={{display:"flex", gap:8, marginBottom:16}}>
+          <button onClick={handleShare} style={{
+            flex:1, padding:"11px 0", borderRadius:10, border:"none", cursor:"pointer",
+            background:"linear-gradient(135deg,#1d4ed8,#1e40af)",
+            color:"#fff", fontSize:13, fontWeight:700, touchAction:"manipulation",
+          }}>
+            {copied ? t.shareCopied : t.shareBtn}
+          </button>
+          <button onClick={handleHofSave} style={{
+            flex:1, padding:"11px 0", borderRadius:10, cursor:"pointer",
+            background: hofSaved ? "rgba(34,197,94,0.15)" : th.card,
+            border: `1px solid ${hofSaved ? "#22c55e" : th.cardBorder}`,
+            color: hofSaved ? "#22c55e" : th.textMuted,
+            fontSize:13, fontWeight:700, touchAction:"manipulation",
+          }}>
+            {hofSaved ? t.hofSaved : t.hofSave}
+          </button>
+        </div>
+
+        {/* ── Anecdote ── */}
+        {anecdote && (
+          <div style={{
+            marginBottom:16, padding:"12px 14px",
+            background:"rgba(251,191,36,0.07)",
+            border:"1px solid rgba(251,191,36,0.25)",
+            borderRadius:12, borderLeft:"3px solid #fbbf24",
+          }}>
+            <div style={{fontSize:10, fontWeight:700, color:"#fbbf24",
+              letterSpacing:1, marginBottom:5}}>{t.anecdoteTitle} — {anecdote.name}</div>
+            <div style={{fontSize:13, color:th.textMuted, lineHeight:1.6}}>
+              {anecdote.text}
+            </div>
+          </div>
+        )}
+
+        {/* ── Hall of Fame ── */}
+        {hofList.length > 0 && (
+          <div style={{marginBottom:16}}>
+            <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+              <div style={{fontSize:12, fontWeight:700, color:th.textDim, letterSpacing:1}}>{t.hofTitle}</div>
+              <button onClick={()=>{ hofSave([]); setHofList([]); }} style={{
+                background:"transparent", border:"none", color:th.textFaint,
+                fontSize:11, cursor:"pointer", touchAction:"manipulation",
+              }}>{t.hofClear}</button>
+            </div>
+            <div style={{display:"flex", flexDirection:"column", gap:6}}>
+              {hofList.map((entry, i) => (
+                <div key={i} style={{
+                  display:"flex", alignItems:"center", gap:10,
+                  padding:"10px 12px", borderRadius:10,
+                  background: i===0 ? "rgba(251,191,36,0.08)" : th.card,
+                  border:`1px solid ${i===0 ? "rgba(251,191,36,0.3)" : th.cardBorder}`,
+                }}>
+                  <div style={{fontSize:18, flexShrink:0}}>
+                    {i===0?"🥇":i===1?"🥈":i===2?"🥉":"⚾"}
+                  </div>
+                  <div style={{flex:1, minWidth:0}}>
+                    <div style={{display:"flex", gap:8, alignItems:"baseline"}}>
+                      <span style={{fontSize:17, fontWeight:900,
+                        color: winColor(entry.wins)}}>{entry.wins}W</span>
+                      <span style={{fontSize:11, color:th.textDim}}>{entry.rpg} R/G</span>
+                      <span style={{fontSize:10, color:th.textFaint, marginLeft:"auto"}}>{entry.date}</span>
+                    </div>
+                    <div style={{fontSize:11, color:th.textMuted, marginTop:2,
+                      whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
+                      {entry.players.map(p=>p.name).join(" · ")}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── Tab bar ── */}
+        <div style={{display:"flex", gap:4, marginBottom:12,
+          background:th.tableHead, borderRadius:10, padding:4}}>
           {[["leaders","🏆"],["season","📊"],["career","📋"]].map(([key,icon])=>(
             <button key={key} onClick={()=>setTab(key)} style={{
-              flex:1,padding:"9px 4px",borderRadius:8,border:"none",
-              background:tab===key?"#dc2626":t.transparent,
+              flex:1, padding:"9px 4px", borderRadius:8, border:"none",
+              background:tab===key?"#dc2626":"transparent",
               color:tab===key?"#fff":th.textMuted,
-              fontSize:12,fontWeight:tab===key?700:400,cursor:"pointer",
-              touchAction:"manipulation",transition:"all 0.15s",
-            }}>{icon} {key==="leaders"?t.seasonLeaders?.split(" ")[0]||"Leaders":key==="season"?"Stats":"Career"}</button>
+              fontSize:12, fontWeight:tab===key?700:400,
+              cursor:"pointer", touchAction:"manipulation", transition:"all 0.15s",
+            }}>{icon} {key==="leaders"?"Leaders":key==="season"?"Stats":"Career"}</button>
           ))}
         </div>
 
-        {/* LEADERS TAB */}
+        {/* ── LEADERS ── */}
         {tab==="leaders" && ps.length>0 && (
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:8}}>
             {leaders.map((ld,i)=>(
               <div key={i} style={{
-                background:th.card,border:`1px solid ${th.cardBorder}`,
-                borderRadius:12,padding:"12px",
-                borderTop:`3px solid ${ld.color}`,
+                background:th.card, border:`1px solid ${th.cardBorder}`,
+                borderRadius:12, padding:"11px", borderTop:`3px solid ${ld.color}`,
               }}>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
-                  <span style={{fontSize:18}}>{ld.icon}</span>
-                  <span style={{fontSize:9,color:th.textDim,letterSpacing:1,fontWeight:600}}>
+                <div style={{display:"flex", alignItems:"center", gap:5, marginBottom:5}}>
+                  <span style={{fontSize:16}}>{ld.icon}</span>
+                  <span style={{fontSize:9, color:th.textDim, letterSpacing:1, fontWeight:600}}>
                     {ld.label.toUpperCase()}
                   </span>
                 </div>
-                <div style={{fontSize:24,fontWeight:900,color:ld.color,lineHeight:1,marginBottom:4}}>
+                <div style={{fontSize:22, fontWeight:900, color:ld.color, lineHeight:1, marginBottom:3}}>
                   {ld.value}
                 </div>
-                <div style={{fontSize:12,fontWeight:600,color:th.text,
-                  whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                <div style={{fontSize:12, fontWeight:600, color:th.text,
+                  whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis"}}>
                   {ld.player?.name||"—"}
                 </div>
-                <div style={{fontSize:10,color:th.textDim}}>
+                <div style={{fontSize:10, color:th.textDim}}>
                   {ld.player?.pos} · {ld.player?.era}
                 </div>
               </div>
@@ -1271,56 +1482,52 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
           </div>
         )}
 
-        {/* SEASON STATS TAB */}
+        {/* ── SEASON STATS ── */}
         {tab==="season" && ps.length>0 && (
-          <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <div style={{overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
+            <table style={{width:"100%", borderCollapse:"collapse", fontSize:12}}>
               <thead>
                 <tr style={{background:th.tableHead}}>
                   {["#","PLAYER","R","H","HR","RBI","AVG"].map(h=>(
-                    <th key={h} style={{padding:"8px 6px",textAlign:h==="PLAYER"?"left":"center",
-                      color:th.textDim,fontWeight:600,fontSize:10,whiteSpace:"nowrap",
+                    <th key={h} style={{padding:"7px 6px", textAlign:h==="PLAYER"?"left":"center",
+                      color:th.textDim, fontWeight:600, fontSize:10, whiteSpace:"nowrap",
                       borderBottom:`1px solid ${th.tableBorder}`}}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
-                {ps.map((p,i)=>{
-                  const maxHR = Math.max(...ps.map(x=>x.HR));
-                  const maxR  = Math.max(...ps.map(x=>x.R));
-                  return (
-                    <tr key={i} style={{borderBottom:`1px solid ${th.rowBorder}`}}>
-                      <td style={{padding:"8px 6px",color:"#dc2626",fontWeight:700,textAlign:"center"}}>{i+1}</td>
-                      <td style={{padding:"8px 6px"}}>
-                        <div style={{fontWeight:600,color:th.text,whiteSpace:"nowrap"}}>{p.name}</div>
-                        <div style={{fontSize:10,color:"#fbbf24"}}>{p.era}</div>
-                      </td>
-                      <td style={{padding:"8px 6px",textAlign:"center",
-                        color:p.R===maxR?"#22c55e":th.textMuted,
-                        fontWeight:p.R===maxR?700:400}}>{p.R}</td>
-                      <td style={{padding:"8px 6px",textAlign:"center",color:th.textMuted}}>{p.H}</td>
-                      <td style={{padding:"8px 6px",textAlign:"center",
-                        color:p.HR===maxHR?"#dc2626":th.textMuted,
-                        fontWeight:p.HR===maxHR?700:400}}>{p.HR}</td>
-                      <td style={{padding:"8px 6px",textAlign:"center",color:th.textMuted}}>{p.RBI}</td>
-                      <td style={{padding:"8px 6px",textAlign:"center",color:"#a78bfa",fontFamily:"monospace"}}>{p.AVG}</td>
-                    </tr>
-                  );
-                })}
+                {ps.map((p,i)=>(
+                  <tr key={i} style={{borderBottom:`1px solid ${th.rowBorder}`}}>
+                    <td style={{padding:"7px 6px", color:"#dc2626", fontWeight:700, textAlign:"center"}}>{i+1}</td>
+                    <td style={{padding:"7px 6px"}}>
+                      <div style={{fontWeight:600, color:th.text, whiteSpace:"nowrap"}}>{p.name}</div>
+                      <div style={{fontSize:10, color:"#fbbf24"}}>{p.era}</div>
+                    </td>
+                    <td style={{padding:"7px 6px", textAlign:"center",
+                      color:p.R===maxR?"#22c55e":th.textMuted,
+                      fontWeight:p.R===maxR?700:400}}>{p.R}</td>
+                    <td style={{padding:"7px 6px", textAlign:"center", color:th.textMuted}}>{p.H}</td>
+                    <td style={{padding:"7px 6px", textAlign:"center",
+                      color:p.HR===maxHR?"#dc2626":th.textMuted,
+                      fontWeight:p.HR===maxHR?700:400}}>{p.HR}</td>
+                    <td style={{padding:"7px 6px", textAlign:"center", color:th.textMuted}}>{p.RBI}</td>
+                    <td style={{padding:"7px 6px", textAlign:"center", color:"#a78bfa", fontFamily:"monospace"}}>{p.AVG}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
 
-        {/* CAREER STATS TAB */}
+        {/* ── CAREER STATS ── */}
         {tab==="career" && (
-          <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+          <div style={{overflowX:"auto", WebkitOverflowScrolling:"touch"}}>
+            <table style={{width:"100%", borderCollapse:"collapse", fontSize:12}}>
               <thead>
                 <tr style={{background:th.tableHead}}>
                   {["#","PLAYER","OBP","SLG","AVG"].map(h=>(
-                    <th key={h} style={{padding:"8px 6px",textAlign:h==="PLAYER"?"left":"center",
-                      color:th.textDim,fontWeight:600,fontSize:10,whiteSpace:"nowrap",
+                    <th key={h} style={{padding:"7px 6px", textAlign:h==="PLAYER"?"left":"center",
+                      color:th.textDim, fontWeight:600, fontSize:10, whiteSpace:"nowrap",
                       borderBottom:`1px solid ${th.tableBorder}`}}>{h}</th>
                   ))}
                 </tr>
@@ -1328,14 +1535,14 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
               <tbody>
                 {lineup.map((p,i)=>(
                   <tr key={i} style={{borderBottom:`1px solid ${th.rowBorder}`}}>
-                    <td style={{padding:"8px 6px",color:"#dc2626",fontWeight:700,textAlign:"center"}}>{i+1}</td>
-                    <td style={{padding:"8px 6px"}}>
-                      <div style={{fontWeight:600,color:th.text,whiteSpace:"nowrap"}}>{p.name}</div>
-                      <div style={{fontSize:10,color:"#fbbf24"}}>{p.era} · {p.pos}</div>
+                    <td style={{padding:"7px 6px", color:"#dc2626", fontWeight:700, textAlign:"center"}}>{i+1}</td>
+                    <td style={{padding:"7px 6px"}}>
+                      <div style={{fontWeight:600, color:th.text, whiteSpace:"nowrap"}}>{p.name}</div>
+                      <div style={{fontSize:10, color:"#fbbf24"}}>{p.era} · {p.pos}</div>
                     </td>
-                    <td style={{padding:"8px 6px",textAlign:"center",color:"#3b82f6",fontFamily:"monospace"}}>{p.obp}</td>
-                    <td style={{padding:"8px 6px",textAlign:"center",color:"#dc2626",fontFamily:"monospace"}}>{p.slg}</td>
-                    <td style={{padding:"8px 6px",textAlign:"center",color:"#22c55e",fontFamily:"monospace"}}>{p.avg}</td>
+                    <td style={{padding:"7px 6px", textAlign:"center", color:"#3b82f6", fontFamily:"monospace"}}>{p.obp}</td>
+                    <td style={{padding:"7px 6px", textAlign:"center", color:"#dc2626", fontFamily:"monospace"}}>{p.slg}</td>
+                    <td style={{padding:"7px 6px", textAlign:"center", color:"#22c55e", fontFamily:"monospace"}}>{p.avg}</td>
                   </tr>
                 ))}
               </tbody>
@@ -1345,53 +1552,10 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
 
         <button onClick={onRestart} style={{
           ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
-          width:"100%",fontSize:16,padding:"16px",borderRadius:12,marginTop:24,
+          width:"100%", fontSize:16, padding:"15px", borderRadius:12, marginTop:20,
         }}>{t.playAgain}</button>
-      </div>
-    </div>
-  );
-}
 
-// ── Donate bar — fixed bottom, visible on all screens ────────────────────────
-function DonateBar({ t, th }) {
-  const [visible, setVisible] = React.useState(true);
-  if (!visible) return null;
-  return (
-    <div style={{
-      position:"fixed", bottom:0, left:0, right:0, zIndex:200,
-      background: th.bg === "#0a0e17"
-        ? "rgba(10,14,23,0.97)"
-        : "rgba(241,245,249,0.97)",
-      backdropFilter:"blur(12px)",
-      borderTop:`1px solid rgba(220,38,38,0.25)`,
-      padding:"10px 16px",
-      paddingBottom:"calc(10px + env(safe-area-inset-bottom))",
-      display:"flex", alignItems:"center", gap:10,
-    }}>
-      {/* Message */}
-      <div style={{flex:1, minWidth:0}}>
-        <div style={{fontSize:12, color:th.textMuted, whiteSpace:"nowrap",
-          overflow:"hidden", textOverflow:"ellipsis"}}>
-          {t.donateMsg}
-        </div>
       </div>
-      {/* CTA */}
-      <a href="https://revolut.me/nathanb7mj" target="_blank" rel="noopener noreferrer"
-        style={{
-          display:"inline-flex", alignItems:"center", gap:6, flexShrink:0,
-          background:"linear-gradient(135deg,#dc2626,#991b1b)",
-          color:"#fff", borderRadius:8, padding:"8px 14px",
-          fontSize:12, fontWeight:700, textDecoration:"none",
-          whiteSpace:"nowrap", touchAction:"manipulation",
-        }}>
-        {t.donateBtn}
-      </a>
-      {/* Dismiss */}
-      <button onClick={()=>setVisible(false)} style={{
-        background:"transparent", border:"none", color:th.textFaint,
-        fontSize:18, cursor:"pointer", padding:"0 2px", flexShrink:0,
-        touchAction:"manipulation", lineHeight:1,
-      }}>×</button>
     </div>
   );
 }
