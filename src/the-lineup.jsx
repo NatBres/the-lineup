@@ -1048,7 +1048,7 @@ function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, onC
       </div>
       <div style={{height:3, background:"#dc2626"}}/>
 
-      <div style={{padding:"14px 12px 110px"}}>
+      <div style={{padding:"14px 12px 150px"}}>
 
         {/* Instruction banner */}
         <div style={{
@@ -1156,12 +1156,13 @@ function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, onC
         </div>
       </div>
 
-      {/* Fixed bottom CTA */}
+      {/* Fixed bottom CTA — sits above the donate bar (~60px) */}
       <div style={{
-        position:"fixed", bottom:0, left:0, right:0,
-        padding:"12px 16px", paddingBottom:"calc(12px + env(safe-area-inset-bottom))",
+        position:"fixed", bottom:"calc(60px + env(safe-area-inset-bottom))", left:0, right:0,
+        padding:"10px 16px",
         background: th.headerBg, backdropFilter:"blur(12px)",
         borderTop:`1px solid ${th.cardBorder}`,
+        zIndex:150,
       }}>
         <button onClick={() => onComplete(order)} style={{
           ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
