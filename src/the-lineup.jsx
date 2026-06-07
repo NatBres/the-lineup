@@ -106,6 +106,17 @@ const T = {
     hofSaved: "✓ Saved!",
     hofClear: "Clear",
     anecdoteTitle: "Did you know?",
+    lbTitle: "🌍 Global Leaderboard",
+    lbEnterName: "Enter your name",
+    lbNamePlaceholder: "Your name (max 15 chars)",
+    lbSubmit: "Submit score",
+    lbSubmitting: "Submitting...",
+    lbSubmitted: "✓ Score submitted!",
+    lbTab: "🌍 Leaderboard",
+    lbEmpty: "No scores yet. Be the first!",
+    lbYou: "← YOU",
+    lbRank: "Rank",
+    lbSkip: "Skip",
     feedbackTitle: "Your feedback",
     feedbackSub: "How would you rate The Lineup?",
     feedbackPlaceholder: "Tell us what you think... (optional)",
@@ -264,6 +275,17 @@ const T = {
     hofSaved: "✓ Sauvegardé !",
     hofClear: "Effacer",
     anecdoteTitle: "Le savais-tu ?",
+    lbTitle: "🌍 Classement mondial",
+    lbEnterName: "Entre ton nom",
+    lbNamePlaceholder: "Ton pseudo (15 max)",
+    lbSubmit: "Soumettre le score",
+    lbSubmitting: "Envoi...",
+    lbSubmitted: "✓ Score soumis !",
+    lbTab: "🌍 Classement",
+    lbEmpty: "Aucun score pour l'instant. Sois le premier !",
+    lbYou: "← TOI",
+    lbRank: "Rang",
+    lbSkip: "Passer",
     feedbackTitle: "Ton avis",
     feedbackSub: "Comment évalues-tu The Lineup ?",
     feedbackPlaceholder: "Dis-nous ce que tu penses... (optionnel)",
@@ -422,6 +444,17 @@ const T = {
     hofSaved: "✓ ¡Guardado!",
     hofClear: "Borrar",
     anecdoteTitle: "¿Sabías que?",
+    lbTitle: "🌍 Clasificación mundial",
+    lbEnterName: "Introduce tu nombre",
+    lbNamePlaceholder: "Tu nombre (máx 15 car.)",
+    lbSubmit: "Enviar puntuación",
+    lbSubmitting: "Enviando...",
+    lbSubmitted: "✓ ¡Puntuación enviada!",
+    lbTab: "🌍 Clasificación",
+    lbEmpty: "Sin puntuaciones aún. ¡Sé el primero!",
+    lbYou: "← TÚ",
+    lbRank: "Pos.",
+    lbSkip: "Saltar",
     feedbackTitle: "Tu opinión",
     feedbackSub: "¿Cómo valorarías The Lineup?",
     feedbackPlaceholder: "Cuéntanos qué piensas... (opcional)",
@@ -566,6 +599,43 @@ function getAnecdote(lineup, lang) {
   const player = withAnecdote[Math.floor(Math.random() * withAnecdote.length)];
   const fact = ANECDOTES[player.name];
   return { name: player.name, text: fact[lang] || fact.en };
+}
+
+
+// ── Supabase config ───────────────────────────────────────────────────────────
+const SUPABASE_URL = "https://mhdldnmljxqscbhdvqfj.supabase.co";
+const SUPABASE_KEY = "sb_publishable_3h40AsMBIeu4eC6f4sdqGw_H5Jel9a8";
+
+async function lbFetch(path, opts = {}) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      "apikey":        SUPABASE_KEY,
+      "Authorization": `Bearer ${SUPABASE_KEY}`,
+      "Content-Type":  "application/json",
+      "Prefer":        opts.prefer || "",
+      ...opts.headers,
+    },
+    ...opts,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+async function lbGetTop(limit = 20) {
+  return lbFetch(
+    `leaderboard?select=id,name,wins,rpg,lineup,created_at&order=wins.desc,rpg.desc&limit=${limit}`
+  );
+}
+
+async function lbInsert(name, wins, rpg, lineup) {
+  const lineupStr = JSON.stringify(lineup.map(p => ({ name: p.name, pos: p.pos })));
+  return lbFetch("leaderboard", {
+    method:  "POST",
+    prefer:  "return=representation",
+    headers: { "Prefer": "return=representation" },
+    body:    JSON.stringify({ name, wins, rpg: parseFloat(rpg), lineup: lineupStr }),
+  });
 }
 
 function simulateSeason(lineup) {
@@ -1130,6 +1200,15 @@ function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, sho
 
   return (
     <div style={S.app}>
+      {showLb && (
+        <LeaderboardScreen
+          t={t} th={th}
+          wins={simResult.wins}
+          rpg={simResult.rpg}
+          lineup={lineup}
+          onClose={()=>setShowLb(false)}
+        />
+      )}
       {/* Header */}
       <div style={{...S.header, padding:"10px 16px"}}>
         <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
@@ -1310,6 +1389,7 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
   const [hofList,   setHofList]   = useState(() => hofLoad());
   const [hofSaved,  setHofSaved]  = useState(false);
   const [anecdote]                = useState(() => getAnecdote(lineup, lang));
+  const [showLb,    setShowLb]    = useState(false);
 
   if (!lineup || !simResult) return null;
 
@@ -1357,6 +1437,15 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
 
   return (
     <div style={S.app}>
+      {showLb && (
+        <LeaderboardScreen
+          t={t} th={th}
+          wins={simResult.wins}
+          rpg={simResult.rpg}
+          lineup={lineup}
+          onClose={()=>setShowLb(false)}
+        />
+      )}
       {/* Header */}
       <div style={{...S.header, padding:"10px 16px"}}>
         <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
@@ -1390,14 +1479,23 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
           </div>
         </div>
 
-        {/* ── Action buttons: Share + Save ── */}
-        <div style={{display:"flex", gap:8, marginBottom:16}}>
+        {/* ── Action buttons: Share + Save + Leaderboard ── */}
+        <div style={{display:"flex", gap:8, marginBottom:16, flexWrap:"wrap"}}>
           <button onClick={handleShare} style={{
             flex:1, padding:"11px 0", borderRadius:10, border:"none", cursor:"pointer",
             background:"linear-gradient(135deg,#1d4ed8,#1e40af)",
             color:"#fff", fontSize:13, fontWeight:700, touchAction:"manipulation",
+            minWidth:100,
           }}>
             {copied ? t.shareCopied : t.shareBtn}
+          </button>
+          <button onClick={()=>setShowLb(true)} style={{
+            flex:1, padding:"11px 0", borderRadius:10, border:"none", cursor:"pointer",
+            background:"linear-gradient(135deg,#f59e0b,#d97706)",
+            color:"#fff", fontSize:13, fontWeight:700, touchAction:"manipulation",
+            minWidth:100,
+          }}>
+            {t.lbTab}
           </button>
           <button onClick={handleHofSave} style={{
             flex:1, padding:"11px 0", borderRadius:10, cursor:"pointer",
@@ -1405,6 +1503,7 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
             border: `1px solid ${hofSaved ? "#22c55e" : th.cardBorder}`,
             color: hofSaved ? "#22c55e" : th.textMuted,
             fontSize:13, fontWeight:700, touchAction:"manipulation",
+            minWidth:100,
           }}>
             {hofSaved ? t.hofSaved : t.hofSave}
           </button>
@@ -1581,6 +1680,203 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
           width:"100%", fontSize:16, padding:"15px", borderRadius:12, marginTop:20,
         }}>{t.playAgain}</button>
 
+      </div>
+    </div>
+  );
+}
+
+
+// ── Leaderboard screen (arcade style) ────────────────────────────────────────
+function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
+  const S = makeS(th);
+  const [step,        setStep]        = useState("enter"); // enter | board
+  const [name,        setName]        = useState("");
+  const [submitting,  setSubmitting]  = useState(false);
+  const [submitted,   setSubmitted]   = useState(false);
+  const [board,       setBoard]       = useState([]);
+  const [loading,     setLoading]     = useState(false);
+  const [myId,        setMyId]        = useState(null);
+
+  // Load leaderboard
+  async function loadBoard() {
+    setLoading(true);
+    try {
+      const rows = await lbGetTop(20);
+      setBoard(rows || []);
+    } catch(e) { console.error(e); }
+    setLoading(false);
+  }
+
+  // Submit score then show board
+  async function handleSubmit() {
+    if (!name.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await lbInsert(name.trim(), wins, rpg, lineup);
+      const inserted = Array.isArray(res) ? res[0] : res;
+      setMyId(inserted?.id || null);
+      setSubmitted(true);
+      setStep("board");
+      await loadBoard();
+    } catch(e) {
+      console.error(e);
+      setStep("board");
+      await loadBoard();
+    }
+    setSubmitting(false);
+  }
+
+  // Skip — just view board
+  async function handleSkip() {
+    setStep("board");
+    await loadBoard();
+  }
+
+  // Medal by rank
+  function medal(i) {
+    return i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+  }
+
+  // Find my position in board
+  const myIdx = myId ? board.findIndex(r => r.id === myId) : -1;
+
+  return (
+    <div style={{
+      position:"fixed", inset:0, zIndex:800,
+      background:"rgba(0,0,0,0.85)", backdropFilter:"blur(6px)",
+      display:"flex", alignItems:"flex-end",
+    }} onClick={step==="board" ? onClose : undefined}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        width:"100%", background:th.modalBg,
+        borderRadius:"20px 20px 0 0",
+        border:`1px solid ${th.modalBorder}`,
+        maxHeight:"90vh", display:"flex", flexDirection:"column",
+      }}>
+        {/* Handle */}
+        <div style={{width:36,height:4,background:th.cardBorder,borderRadius:2,
+          margin:"12px auto 0", flexShrink:0}}/>
+
+        {/* Header */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+          padding:"14px 16px 10px", flexShrink:0}}>
+          <div style={{fontSize:18,fontWeight:700,color:th.text}}>{t.lbTitle}</div>
+          <button onClick={onClose} style={{background:th.card,border:`1px solid ${th.cardBorder}`,
+            color:th.textDim,fontSize:18,cursor:"pointer",borderRadius:8,
+            width:32,height:32,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+        </div>
+
+        {/* Your score badge */}
+        <div style={{margin:"0 16px 12px",padding:"10px 14px",
+          background:"rgba(220,38,38,0.1)",border:"1px solid rgba(220,38,38,0.3)",
+          borderRadius:10,display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
+          <div style={{fontSize:28,fontWeight:900,color:winColor(wins),lineHeight:1}}>{wins}W</div>
+          <div style={{fontSize:13,color:th.textMuted}}>{rpg} runs/game</div>
+          <div style={{marginLeft:"auto",fontSize:12,color:th.textDim}}>
+            {lineup.slice(0,3).map(p=>p.name.split(" ").pop()).join(" · ")}...
+          </div>
+        </div>
+
+        {/* ENTER NAME STEP */}
+        {step === "enter" && (
+          <div style={{padding:"0 16px 24px", flexShrink:0}}>
+            <div style={{fontSize:14,color:th.textMuted,marginBottom:12}}>
+              {t.lbEnterName}
+            </div>
+            <input
+              value={name}
+              onChange={e=>setName(e.target.value.slice(0,15))}
+              onKeyDown={e=>e.key==="Enter" && handleSubmit()}
+              placeholder={t.lbNamePlaceholder}
+              maxLength={15}
+              autoFocus
+              style={{
+                width:"100%", boxSizing:"border-box",
+                background:th.card, border:`2px solid ${name ? "#dc2626" : th.cardBorder}`,
+                borderRadius:10, padding:"12px 14px",
+                color:th.text, fontSize:16, outline:"none",
+                fontFamily:"inherit", marginBottom:10,
+                textAlign:"center", letterSpacing:2, fontWeight:700,
+              }}
+            />
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={handleSkip} style={{
+                flex:1,padding:"12px",borderRadius:10,
+                border:`1px solid ${th.cardBorder}`,
+                background:th.card,color:th.textMuted,
+                fontSize:14,cursor:"pointer",touchAction:"manipulation",
+              }}>{t.lbSkip}</button>
+              <button onClick={handleSubmit} disabled={!name.trim()||submitting} style={{
+                flex:2,padding:"12px",borderRadius:10,border:"none",
+                background:name.trim()&&!submitting
+                  ?"linear-gradient(135deg,#dc2626,#991b1b)":th.card,
+                color:name.trim()&&!submitting?"#fff":th.textFaint,
+                fontSize:14,fontWeight:700,cursor:name.trim()?"pointer":"default",
+                touchAction:"manipulation",
+              }}>
+                {submitting ? t.lbSubmitting : t.lbSubmit}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* LEADERBOARD STEP */}
+        {step === "board" && (
+          <div style={{overflowY:"auto",flex:1,WebkitOverflowScrolling:"touch",
+            padding:"0 12px 32px"}}>
+            {loading ? (
+              <div style={{textAlign:"center",padding:"40px 0",color:th.textDim}}>
+                <div style={{fontSize:28,marginBottom:8}}>⚾</div>
+                Loading...
+              </div>
+            ) : board.length === 0 ? (
+              <div style={{textAlign:"center",padding:"40px 0",color:th.textMuted,fontSize:14}}>
+                {t.lbEmpty}
+              </div>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",gap:6}}>
+                {board.map((row, i) => {
+                  const isMe = row.id === myId;
+                  const players = (() => { try { return JSON.parse(row.lineup); } catch { return []; } })();
+                  return (
+                    <div key={row.id} style={{
+                      display:"flex",alignItems:"center",gap:10,
+                      padding:"10px 12px",borderRadius:12,
+                      background:isMe?"rgba(220,38,38,0.1)":i<3?"rgba(251,191,36,0.06)":th.card,
+                      border:`1px solid ${isMe?"rgba(220,38,38,0.4)":i<3?"rgba(251,191,36,0.2)":th.cardBorder}`,
+                      boxShadow:isMe?"0 0 0 2px rgba(220,38,38,0.2)":"none",
+                    }}>
+                      {/* Rank */}
+                      <div style={{minWidth:32,textAlign:"center",fontSize:i<3?18:13,
+                        fontWeight:700,color:i===0?"#fbbf24":i===1?"#9ca3af":i===2?"#b45309":th.textDim}}>
+                        {medal(i)}
+                      </div>
+                      {/* Name + lineup */}
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6}}>
+                          <span style={{fontWeight:700,fontSize:14,color:isMe?"#dc2626":th.text}}>
+                            {row.name}
+                          </span>
+                          {isMe && <span style={{fontSize:10,color:"#dc2626",fontWeight:600}}>{t.lbYou}</span>}
+                        </div>
+                        <div style={{fontSize:10,color:th.textFaint,marginTop:2,
+                          whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                          {players.map(p=>`${p.pos} ${p.name.split(" ").pop()}`).join(" · ")}
+                        </div>
+                      </div>
+                      {/* Score */}
+                      <div style={{textAlign:"right",flexShrink:0}}>
+                        <div style={{fontSize:16,fontWeight:900,color:winColor(row.wins)}}>
+                          {row.wins}W
+                        </div>
+                        <div style={{fontSize:10,color:th.textDim}}>{row.rpg} R/G</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
