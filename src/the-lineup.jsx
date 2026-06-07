@@ -1696,8 +1696,9 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
       setBoard(rows || []);
       return rows || [];
     } catch(e) {
-      console.error("Load error:", e.message);
-      setError(e.message);
+      const msg = e.message || "Network error";
+      console.error("Load error:", msg);
+      setError(msg);
       setBoard([]);
       return [];
     } finally {
@@ -1732,6 +1733,7 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
       setBoard(rows || []);
     } catch(e) {
       console.error("Load error:", e.message);
+      setError(`Failed to load leaderboard: ${e.message}`);
       setBoard([]);
     }
 
