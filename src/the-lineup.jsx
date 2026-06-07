@@ -1200,15 +1200,6 @@ function OrderPhase({ roster, mode, lang, setLang, theme, setTheme, showHtp, sho
 
   return (
     <div style={S.app}>
-      {showLb && (
-        <LeaderboardScreen
-          t={t} th={th}
-          wins={simResult.wins}
-          rpg={simResult.rpg}
-          lineup={lineup}
-          onClose={()=>setShowLb(false)}
-        />
-      )}
       {/* Header */}
       <div style={{...S.header, padding:"10px 16px"}}>
         <div style={S.logo}>The <span style={S.red}>Lineup</span></div>
