@@ -1679,17 +1679,54 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
 // ── Leaderboard screen (arcade style) ────────────────────────────────────────
 function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
   const S = makeS(th);
-  const [step,        setStep]        = useState("enter"); // enter | board
-  const [name,        setName]        = useState("");
-  const [submitting,  setSubmitting]  = useState(false);
-  const [submitted,   setSubmitted]   = useState(false);
-  const [board,       setBoard]       = useState([]);
-  const [loading,     setLoading]     = useState(false);
-  const [myId,        setMyId]        = useState(null);
+  const [step,       setStep]       = useState("enter"); // enter | board
+  const [name,       setName]       = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [board,      setBoard]      = useState([]);
+  const [loading,    setLoading]    = useState(false);
+  const [myId,       setMyId]       = useState(null);
+  const [error,      setError]      = useState(null);
 
-  // Load leaderboard
+  // Load leaderboard — returns the rows so caller can use them directly
   async function loadBoard() {
     setLoading(true);
+    setError(null);
+    try {
+      const rows = await lbGetTop(20);
+      setBoard(rows || []);
+      return rows || [];
+    } catch(e) {
+      console.error("Load error:", e.message);
+      setError(e.message);
+      setBoard([]);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Submit → switch to board step (loading=true) → fetch → done
+  async function handleSubmit() {
+    if (!name.trim()) return;
+    setSubmitting(true);
+
+    // Switch to board with loading spinner IMMEDIATELY (before any async work)
+    setStep("board");
+    setLoading(true);
+
+    let insertedId = null;
+    try {
+      const inserted = await lbInsert(name.trim(), wins, rpg, lineup);
+      insertedId = inserted?.id || null;
+      setMyId(insertedId);
+    } catch(e) {
+      console.error("Insert error:", e.message);
+      // Continue to show board even if insert failed
+    }
+
+    // Small delay to let Supabase commit the insert before we read it back
+    await new Promise(r => setTimeout(r, 600));
+
     try {
       const rows = await lbGetTop(20);
       setBoard(rows || []);
@@ -1697,46 +1734,27 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
       console.error("Load error:", e.message);
       setBoard([]);
     }
-    setLoading(false);
-  }
 
-  // Submit score then show board
-  async function handleSubmit() {
-    if (!name.trim()) return;
-    setSubmitting(true);
-    try {
-      const inserted = await lbInsert(name.trim(), wins, rpg, lineup);
-      setMyId(inserted?.id || null);
-      setSubmitted(true);
-    } catch(e) {
-      console.error("Insert error:", e.message);
-      // Still show the board even if insert failed
-    }
-    setStep("board");
-    await loadBoard();
+    setLoading(false);
     setSubmitting(false);
   }
 
-  // Skip — just view board
+  // Skip — switch to board with spinner immediately
   async function handleSkip() {
     setStep("board");
     await loadBoard();
   }
 
-  // Medal by rank
   function medal(i) {
     return i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
   }
-
-  // Find my position in board
-  const myIdx = myId ? board.findIndex(r => r.id === myId) : -1;
 
   return (
     <div style={{
       position:"fixed", inset:0, zIndex:800,
       background:"rgba(0,0,0,0.85)", backdropFilter:"blur(6px)",
       display:"flex", alignItems:"flex-end",
-    }} onClick={step==="board" ? onClose : undefined}>
+    }} onClick={step==="board" && !loading ? onClose : undefined}>
       <div onClick={e=>e.stopPropagation()} style={{
         width:"100%", background:th.modalBg,
         borderRadius:"20px 20px 0 0",
@@ -1745,11 +1763,11 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
       }}>
         {/* Handle */}
         <div style={{width:36,height:4,background:th.cardBorder,borderRadius:2,
-          margin:"12px auto 0", flexShrink:0}}/>
+          margin:"12px auto 0",flexShrink:0}}/>
 
         {/* Header */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
-          padding:"14px 16px 10px", flexShrink:0}}>
+          padding:"14px 16px 10px",flexShrink:0}}>
           <div style={{fontSize:18,fontWeight:700,color:th.text}}>{t.lbTitle}</div>
           <button onClick={onClose} style={{background:th.card,border:`1px solid ${th.cardBorder}`,
             color:th.textDim,fontSize:18,cursor:"pointer",borderRadius:8,
@@ -1762,31 +1780,29 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
           borderRadius:10,display:"flex",alignItems:"center",gap:12,flexShrink:0}}>
           <div style={{fontSize:28,fontWeight:900,color:winColor(wins),lineHeight:1}}>{wins}W</div>
           <div style={{fontSize:13,color:th.textMuted}}>{rpg} runs/game</div>
-          <div style={{marginLeft:"auto",fontSize:12,color:th.textDim}}>
+          <div style={{marginLeft:"auto",fontSize:12,color:th.textDim,overflow:"hidden",textOverflow:"ellipsis",maxWidth:160}}>
             {lineup.slice(0,3).map(p=>p.name.split(" ").pop()).join(" · ")}...
           </div>
         </div>
 
-        {/* ENTER NAME STEP */}
+        {/* ── ENTER NAME ── */}
         {step === "enter" && (
-          <div style={{padding:"0 16px 24px", flexShrink:0}}>
-            <div style={{fontSize:14,color:th.textMuted,marginBottom:12}}>
-              {t.lbEnterName}
-            </div>
+          <div style={{padding:"0 16px 24px",flexShrink:0}}>
+            <div style={{fontSize:14,color:th.textMuted,marginBottom:12}}>{t.lbEnterName}</div>
             <input
               value={name}
               onChange={e=>setName(e.target.value.slice(0,15))}
-              onKeyDown={e=>e.key==="Enter" && handleSubmit()}
+              onKeyDown={e=>e.key==="Enter" && name.trim() && handleSubmit()}
               placeholder={t.lbNamePlaceholder}
               maxLength={15}
               autoFocus
               style={{
-                width:"100%", boxSizing:"border-box",
-                background:th.card, border:`2px solid ${name ? "#dc2626" : th.cardBorder}`,
-                borderRadius:10, padding:"12px 14px",
-                color:th.text, fontSize:16, outline:"none",
-                fontFamily:"inherit", marginBottom:10,
-                textAlign:"center", letterSpacing:2, fontWeight:700,
+                width:"100%",boxSizing:"border-box",
+                background:th.card,border:`2px solid ${name?"#dc2626":th.cardBorder}`,
+                borderRadius:10,padding:"12px 14px",
+                color:th.text,fontSize:16,outline:"none",
+                fontFamily:"inherit",marginBottom:10,
+                textAlign:"center",letterSpacing:2,fontWeight:700,
               }}
             />
             <div style={{display:"flex",gap:8}}>
@@ -1798,26 +1814,37 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
               }}>{t.lbSkip}</button>
               <button onClick={handleSubmit} disabled={!name.trim()||submitting} style={{
                 flex:2,padding:"12px",borderRadius:10,border:"none",
-                background:name.trim()&&!submitting
-                  ?"linear-gradient(135deg,#dc2626,#991b1b)":th.card,
+                background:name.trim()&&!submitting?"linear-gradient(135deg,#dc2626,#991b1b)":th.card,
                 color:name.trim()&&!submitting?"#fff":th.textFaint,
-                fontSize:14,fontWeight:700,cursor:name.trim()?"pointer":"default",
+                fontSize:14,fontWeight:700,
+                cursor:name.trim()&&!submitting?"pointer":"default",
                 touchAction:"manipulation",
               }}>
-                {submitting ? t.lbSubmitting : t.lbSubmit}
+                {submitting?t.lbSubmitting:t.lbSubmit}
               </button>
             </div>
           </div>
         )}
 
-        {/* LEADERBOARD STEP */}
+        {/* ── BOARD ── */}
         {step === "board" && (
           <div style={{overflowY:"auto",flex:1,WebkitOverflowScrolling:"touch",
             padding:"0 12px 32px"}}>
             {loading ? (
-              <div style={{textAlign:"center",padding:"40px 0",color:th.textDim}}>
-                <div style={{fontSize:28,marginBottom:8}}>⚾</div>
-                Loading...
+              <div style={{textAlign:"center",padding:"48px 0",color:th.textDim}}>
+                <div style={{fontSize:32,marginBottom:10,
+                  display:"inline-block",animation:"spin 0.8s linear infinite"}}>⚾</div>
+                <div style={{fontSize:13,letterSpacing:1}}>Loading...</div>
+                <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+              </div>
+            ) : error ? (
+              <div style={{textAlign:"center",padding:"40px 16px"}}>
+                <div style={{fontSize:32,marginBottom:10}}>⚠️</div>
+                <div style={{fontSize:13,color:"#f87171",marginBottom:16}}>{error}</div>
+                <button onClick={loadBoard} style={{
+                  padding:"10px 20px",borderRadius:8,border:"none",
+                  background:"#dc2626",color:"#fff",cursor:"pointer",fontSize:13,
+                }}>Retry</button>
               </div>
             ) : board.length === 0 ? (
               <div style={{textAlign:"center",padding:"40px 0",color:th.textMuted,fontSize:14}}>
@@ -1825,8 +1852,8 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
               </div>
             ) : (
               <div style={{display:"flex",flexDirection:"column",gap:6}}>
-                {board.map((row, i) => {
-                  const isMe = row.id === myId;
+                {board.map((row,i) => {
+                  const isMe = myId && row.id === myId;
                   const players = (() => { try { return JSON.parse(row.lineup); } catch { return []; } })();
                   return (
                     <div key={row.id} style={{
@@ -1836,29 +1863,26 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
                       border:`1px solid ${isMe?"rgba(220,38,38,0.4)":i<3?"rgba(251,191,36,0.2)":th.cardBorder}`,
                       boxShadow:isMe?"0 0 0 2px rgba(220,38,38,0.2)":"none",
                     }}>
-                      {/* Rank */}
-                      <div style={{minWidth:32,textAlign:"center",fontSize:i<3?18:13,
-                        fontWeight:700,color:i===0?"#fbbf24":i===1?"#9ca3af":i===2?"#b45309":th.textDim}}>
+                      <div style={{minWidth:32,textAlign:"center",
+                        fontSize:i<3?20:13,fontWeight:700,
+                        color:i===0?"#fbbf24":i===1?"#9ca3af":i===2?"#b45309":th.textDim}}>
                         {medal(i)}
                       </div>
-                      {/* Name + lineup */}
                       <div style={{flex:1,minWidth:0}}>
                         <div style={{display:"flex",alignItems:"center",gap:6}}>
-                          <span style={{fontWeight:700,fontSize:14,color:isMe?"#dc2626":th.text}}>
-                            {row.name}
-                          </span>
-                          {isMe && <span style={{fontSize:10,color:"#dc2626",fontWeight:600}}>{t.lbYou}</span>}
+                          <span style={{fontWeight:700,fontSize:14,
+                            color:isMe?"#dc2626":th.text}}>{row.name}</span>
+                          {isMe&&<span style={{fontSize:10,color:"#dc2626",
+                            fontWeight:700,background:"rgba(220,38,38,0.15)",
+                            padding:"1px 5px",borderRadius:4}}>{t.lbYou}</span>}
                         </div>
                         <div style={{fontSize:10,color:th.textFaint,marginTop:2,
                           whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
                           {players.map(p=>`${p.pos} ${p.name.split(" ").pop()}`).join(" · ")}
                         </div>
                       </div>
-                      {/* Score */}
                       <div style={{textAlign:"right",flexShrink:0}}>
-                        <div style={{fontSize:16,fontWeight:900,color:winColor(row.wins)}}>
-                          {row.wins}W
-                        </div>
+                        <div style={{fontSize:16,fontWeight:900,color:winColor(row.wins)}}>{row.wins}W</div>
                         <div style={{fontSize:10,color:th.textDim}}>{row.rpg} R/G</div>
                       </div>
                     </div>
