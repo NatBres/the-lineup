@@ -604,7 +604,7 @@ function getAnecdote(lineup, lang) {
 
 // ── Supabase config ───────────────────────────────────────────────────────────
 const SUPABASE_URL = "https://mhdldnmljxqscbhdvqfj.supabase.co";
-const SUPABASE_KEY = "sb_publishable_3h40AsMBIeu4eC6f4sdqGw_H5Jel9a8";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZGxkbm1sanhxc2NiaGR2cWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTI1OTYsImV4cCI6MjA5NjQyODU5Nn0.MCOOMoY4sfITU9mPSKfYLktTiXzng_gIF_HkOuJ5YVc";
 
 async function lbFetch(path, opts = {}) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
@@ -612,8 +612,7 @@ async function lbFetch(path, opts = {}) {
       "apikey":        SUPABASE_KEY,
       "Authorization": `Bearer ${SUPABASE_KEY}`,
       "Content-Type":  "application/json",
-      "Prefer":        opts.prefer || "",
-      ...opts.headers,
+      ...(opts.headers || {}),
     },
     ...opts,
   });
@@ -630,12 +629,12 @@ async function lbGetTop(limit = 20) {
 
 async function lbInsert(name, wins, rpg, lineup) {
   const lineupStr = JSON.stringify(lineup.map(p => ({ name: p.name, pos: p.pos })));
-  return lbFetch("leaderboard", {
+  const res = await lbFetch("leaderboard", {
     method:  "POST",
-    prefer:  "return=representation",
     headers: { "Prefer": "return=representation" },
     body:    JSON.stringify({ name, wins, rpg: parseFloat(rpg), lineup: lineupStr }),
   });
+  return Array.isArray(res) ? res[0] : res;
 }
 
 function simulateSeason(lineup) {
@@ -1405,7 +1404,7 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
       ``,
       ...lineup.map((p,i) => `${i+1}. ${p.name} (${p.pos})`),
       ``,
-      `🔗 thelineup.vercel.app`,
+      `🔗 https://the-lineup-nu.vercel.app`,
     ];
     const text = lines.join("\n");
     if (navigator.share) {
@@ -1694,7 +1693,10 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
     try {
       const rows = await lbGetTop(20);
       setBoard(rows || []);
-    } catch(e) { console.error(e); }
+    } catch(e) {
+      console.error("Load error:", e.message);
+      setBoard([]);
+    }
     setLoading(false);
   }
 
@@ -1703,17 +1705,15 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
     if (!name.trim()) return;
     setSubmitting(true);
     try {
-      const res = await lbInsert(name.trim(), wins, rpg, lineup);
-      const inserted = Array.isArray(res) ? res[0] : res;
+      const inserted = await lbInsert(name.trim(), wins, rpg, lineup);
       setMyId(inserted?.id || null);
       setSubmitted(true);
-      setStep("board");
-      await loadBoard();
     } catch(e) {
-      console.error(e);
-      setStep("board");
-      await loadBoard();
+      console.error("Insert error:", e.message);
+      // Still show the board even if insert failed
     }
+    setStep("board");
+    await loadBoard();
     setSubmitting(false);
   }
 
