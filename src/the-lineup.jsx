@@ -606,16 +606,16 @@ function getAnecdote(lineup, lang) {
 const SUPABASE_URL = "https://mhdldnmljxqscbhdvqfj.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1oZGxkbm1sanhxc2NiaGR2cWZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA4NTI1OTYsImV4cCI6MjA5NjQyODU5Nn0.MCOOMoY4sfITU9mPSKfYLktTiXzng_gIF_HkOuJ5YVc";
 
-async function lbFetch(path, opts = {}) {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: {
-      "apikey":        SUPABASE_KEY,
-      "Authorization": `Bearer ${SUPABASE_KEY}`,
-      "Content-Type":  "application/json",
-      ...(opts.headers || {}),
-    },
-    ...opts,
-  });
+async function lbFetch(path, method = "GET", body = null, extraHeaders = {}) {
+  const headers = {
+    "apikey":        SUPABASE_KEY,
+    "Authorization": `Bearer ${SUPABASE_KEY}`,
+    "Content-Type":  "application/json",
+    ...extraHeaders,
+  };
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, opts);
   if (!res.ok) throw new Error(await res.text());
   const text = await res.text();
   return text ? JSON.parse(text) : null;
@@ -629,11 +629,12 @@ async function lbGetTop(limit = 20) {
 
 async function lbInsert(name, wins, rpg, lineup) {
   const lineupStr = JSON.stringify(lineup.map(p => ({ name: p.name, pos: p.pos })));
-  const res = await lbFetch("leaderboard", {
-    method:  "POST",
-    headers: { "Prefer": "return=representation" },
-    body:    JSON.stringify({ name, wins, rpg: parseFloat(rpg), lineup: lineupStr }),
-  });
+  const res = await lbFetch(
+    "leaderboard",
+    "POST",
+    { name, wins, rpg: parseFloat(rpg), lineup: lineupStr },
+    { "Prefer": "return=representation" }
+  );
   return Array.isArray(res) ? res[0] : res;
 }
 
@@ -904,7 +905,33 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
   const t = T[lang];
   const th = getTheme(theme);
   const S = makeS(th);
-  const [mode, setMode] = useState("classic");
+  const [mode, setMode]   = useState("classic");
+  const [tab,  setTab]    = useState("play");    // play | leaderboard
+  const [board, setBoard] = useState([]);
+  const [lbLoading, setLbLoading] = useState(false);
+  const [lbError,   setLbError]   = useState(null);
+
+  async function loadBoard() {
+    setLbLoading(true);
+    setLbError(null);
+    try {
+      const rows = await lbGetTop(20);
+      setBoard(rows || []);
+    } catch(e) {
+      setLbError(e.message);
+    }
+    setLbLoading(false);
+  }
+
+  // Load leaderboard when tab is selected
+  function switchTab(t) {
+    setTab(t);
+    if (t === "leaderboard" && board.length === 0 && !lbLoading) loadBoard();
+  }
+
+  function medal(i) {
+    return i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i+1}`;
+  }
 
   return (
     <div style={S.app}>
@@ -920,47 +947,132 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
         </div>
       </div>
 
-      {/* Body */}
-      <div style={{padding:"32px 20px 80px",maxWidth:480,margin:"0 auto"}}>
-        <div style={{textAlign:"center",marginBottom:28}}>
-          <div style={{fontSize:56,marginBottom:8}}>⚾</div>
-          <div style={{fontSize:28,fontWeight:700,lineHeight:1.2,marginBottom:10}}>
-            Build the Perfect<br/><span style={{color:"#dc2626"}}>Lineup</span>
-          </div>
-          <div style={{fontSize:14,color:th.textMuted,lineHeight:1.7}}>
-            {t.introPara}
-          </div>
-        </div>
-
-        {/* Mode selector */}
-        <div style={{marginBottom:24}}>
-          <div style={{fontSize:11,letterSpacing:2,color:th.textDim,marginBottom:10}}>{t.chooseMode}</div>
-          {[["classic",t.modeClassic,t.modeClassicDesc],["scout",t.modeScout,t.modeScoutDesc]].map(([val,label,desc])=>(
-            <div key={val} onClick={()=>setMode(val)} style={{
-              display:"flex",alignItems:"center",gap:12,padding:"14px 16px",
-              borderRadius:12,marginBottom:10,cursor:"pointer",
-              background:mode===val?th.activeCard:th.card,
-              border:`2px solid ${mode===val?th.activeB:th.cardBorder}`,
-              transition:"all 0.2s",touchAction:"manipulation",
-            }}>
-              <div style={{fontSize:22}}>{label.split(" ")[0]}</div>
-              <div style={{flex:1}}>
-                <div style={{fontWeight:600,fontSize:15,color:th.text}}>{label.slice(3)}</div>
-                <div style={{fontSize:13,color:th.textDim,marginTop:2}}>{desc}</div>
-              </div>
-              <div style={{width:22,height:22,borderRadius:11,border:`2px solid ${mode===val?"#dc2626":th.cardBorder}`,
-                background:mode===val?"#dc2626":"transparent",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                {mode===val&&<div style={{width:8,height:8,borderRadius:4,background:"#fff"}}/>}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <button onClick={()=>onStart(mode)} style={{
-          ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
-          width:"100%",fontSize:17,padding:"16px",borderRadius:12,
-        }}>{t.playBall}</button>
+      {/* Tab switcher */}
+      <div style={{display:"flex",gap:0,borderBottom:`1px solid ${th.cardBorder}`,
+        background:th.headerBg,backdropFilter:"blur(8px)"}}>
+        {[["play","⚾ Play"],["leaderboard",`🌍 ${t.lbTitle}`]].map(([key,label])=>(
+          <button key={key} onClick={()=>switchTab(key)} style={{
+            flex:1,padding:"12px 8px",border:"none",
+            background:"transparent",
+            color:tab===key?"#dc2626":th.textMuted,
+            fontSize:13,fontWeight:tab===key?700:400,
+            borderBottom:tab===key?"2px solid #dc2626":"2px solid transparent",
+            cursor:"pointer",touchAction:"manipulation",transition:"all 0.15s",
+          }}>{label}</button>
+        ))}
       </div>
+
+      {/* ── PLAY TAB ── */}
+      {tab === "play" && (
+        <div style={{padding:"32px 20px 80px",maxWidth:480,margin:"0 auto"}}>
+          <div style={{textAlign:"center",marginBottom:28}}>
+            <div style={{fontSize:56,marginBottom:8}}>⚾</div>
+            <div style={{fontSize:28,fontWeight:700,lineHeight:1.2,marginBottom:10}}>
+              Build the Perfect<br/><span style={{color:"#dc2626"}}>Lineup</span>
+            </div>
+            <div style={{fontSize:14,color:th.textMuted,lineHeight:1.7}}>
+              {t.introPara}
+            </div>
+          </div>
+
+          {/* Mode selector */}
+          <div style={{marginBottom:24}}>
+            <div style={{fontSize:11,letterSpacing:2,color:th.textDim,marginBottom:10}}>{t.chooseMode}</div>
+            {[["classic",t.modeClassic,t.modeClassicDesc],["scout",t.modeScout,t.modeScoutDesc]].map(([val,label,desc])=>(
+              <div key={val} onClick={()=>setMode(val)} style={{
+                display:"flex",alignItems:"center",gap:12,padding:"14px 16px",
+                borderRadius:12,marginBottom:10,cursor:"pointer",
+                background:mode===val?th.activeCard:th.card,
+                border:`2px solid ${mode===val?th.activeB:th.cardBorder}`,
+                transition:"all 0.2s",touchAction:"manipulation",
+              }}>
+                <div style={{fontSize:22}}>{label.split(" ")[0]}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontWeight:600,fontSize:15,color:th.text}}>{label.slice(3)}</div>
+                  <div style={{fontSize:13,color:th.textDim,marginTop:2}}>{desc}</div>
+                </div>
+                <div style={{width:22,height:22,borderRadius:11,border:`2px solid ${mode===val?"#dc2626":th.cardBorder}`,
+                  background:mode===val?"#dc2626":"transparent",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                  {mode===val&&<div style={{width:8,height:8,borderRadius:4,background:"#fff"}}/>}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={()=>onStart(mode)} style={{
+            ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
+            width:"100%",fontSize:17,padding:"16px",borderRadius:12,
+          }}>{t.playBall}</button>
+        </div>
+      )}
+
+      {/* ── LEADERBOARD TAB ── */}
+      {tab === "leaderboard" && (
+        <div style={{padding:"16px 14px 90px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={{fontSize:13,fontWeight:700,color:th.textDim,letterSpacing:1}}>
+              {t.lbTitle}
+            </div>
+            <button onClick={loadBoard} style={{
+              ...S.ghostBtn, fontSize:11,
+            }}>↺ Refresh</button>
+          </div>
+
+          {lbLoading ? (
+            <div style={{textAlign:"center",padding:"48px 0",color:th.textDim}}>
+              <div style={{fontSize:32,marginBottom:10,
+                display:"inline-block",animation:"spin 0.8s linear infinite"}}>⚾</div>
+              <div style={{fontSize:13,letterSpacing:1}}>Loading...</div>
+              <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+            </div>
+          ) : lbError ? (
+            <div style={{textAlign:"center",padding:"40px 16px"}}>
+              <div style={{fontSize:32,marginBottom:10}}>⚠️</div>
+              <div style={{fontSize:13,color:"#f87171",marginBottom:16}}>{lbError}</div>
+              <button onClick={loadBoard} style={{
+                padding:"10px 20px",borderRadius:8,border:"none",
+                background:"#dc2626",color:"#fff",cursor:"pointer",fontSize:13,
+              }}>Retry</button>
+            </div>
+          ) : board.length === 0 ? (
+            <div style={{textAlign:"center",padding:"60px 0",color:th.textMuted}}>
+              <div style={{fontSize:40,marginBottom:12}}>🏆</div>
+              <div style={{fontSize:14}}>{t.lbEmpty}</div>
+            </div>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:7}}>
+              {board.map((row,i) => {
+                const players = (() => { try { return JSON.parse(row.lineup); } catch { return []; } })();
+                return (
+                  <div key={row.id} style={{
+                    display:"flex",alignItems:"center",gap:10,
+                    padding:"11px 12px",borderRadius:12,
+                    background:i<3?"rgba(251,191,36,0.06)":th.card,
+                    border:`1px solid ${i<3?"rgba(251,191,36,0.2)":th.cardBorder}`,
+                  }}>
+                    <div style={{minWidth:34,textAlign:"center",
+                      fontSize:i<3?20:13,fontWeight:700,
+                      color:i===0?"#fbbf24":i===1?"#9ca3af":i===2?"#b45309":th.textDim}}>
+                      {medal(i)}
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:700,fontSize:14,color:th.text}}>{row.name}</div>
+                      <div style={{fontSize:10,color:th.textFaint,marginTop:2,
+                        whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>
+                        {players.map(p=>`${p.pos} ${p.name.split(" ").pop()}`).join(" · ")}
+                      </div>
+                    </div>
+                    <div style={{textAlign:"right",flexShrink:0}}>
+                      <div style={{fontSize:16,fontWeight:900,color:winColor(row.wins)}}>{row.wins}W</div>
+                      <div style={{fontSize:10,color:th.textDim}}>{row.rpg} R/G</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
