@@ -973,7 +973,6 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
           <ThemeToggle theme={theme} setTheme={setTheme} t={t} th={th}/>
           <button onClick={showHtp} style={{...S.ghostBtn,fontSize:13,padding:"5px 8px"}}>❓</button>
             <button onClick={showFeedback} style={{...S.ghostBtn, fontSize:13}}>💬</button>
-            <a href="https://ie.linkedin.com/in/nathan-br%C3%A8s/en" target="_blank" rel="noopener noreferrer" style={{...S.ghostBtn, fontSize:11, fontWeight:700, textDecoration:"none", display:"inline-flex", alignItems:"center", padding:"5px 8px"}}>in</a>
         </div>
       </div>
 
@@ -1041,19 +1040,19 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
           </div>
 
           {/* Contact line */}
-          <div style={{marginTop:8,textAlign:"center",fontSize:10,
-            color:th.textGhost,display:"flex",alignItems:"center",
-            justifyContent:"center",gap:8,flexWrap:"wrap"}}>
-            <span>Built by Nathan Brès</span>
-            <span>·</span>
+          <div style={{marginTop:12,textAlign:"center",fontSize:12,
+            color:th.textMuted,display:"flex",alignItems:"center",
+            justifyContent:"center",gap:10,flexWrap:"wrap"}}>
+            <span style={{fontWeight:600}}>Built by Nathan Brès</span>
+            <span style={{color:th.textGhost}}>·</span>
             <a href="mailto:nathanbs48@gmail.com"
-              style={{color:th.textGhost,textDecoration:"none"}}>
+              style={{color:"#3b82f6",textDecoration:"none"}}>
               nathanbs48@gmail.com
             </a>
-            <span>·</span>
+            <span style={{color:th.textGhost}}>·</span>
             <a href="https://ie.linkedin.com/in/nathan-br%C3%A8s/en"
               target="_blank" rel="noopener noreferrer"
-              style={{color:th.textGhost,textDecoration:"none"}}>
+              style={{color:"#3b82f6",textDecoration:"none"}}>
               LinkedIn
             </a>
           </div>
