@@ -163,14 +163,14 @@ const T = {
         ],
         formulaTitle: "Wins Formula",
         formula: "wins = 50 + (runs_per_game − 4.0) × 14",
-        formulaNote: "Calibrated to real MLB: an average team scores 4.19 R/G → 81 wins. Each extra run/game adds ~13 wins. The 2022 Dodgers would score ~4.9 R/G → ~91 wins. An all-time lineup hits 9+ R/G → 140+ wins.",
+        formulaNote: "Calibrated to real MLB: an average team scores 4.19 R/G → 81 wins. Each extra run/game adds ~17 wins. 162-0 is the holy grail — achievable only with the perfect lineup AND perfect batting order. Most elite lineups land around 155-160W.",
         examplesTitle: "Benchmarks",
         examples: [
           { rpg: "4.2 R/G", wins: "81 W",  label: "MLB average team" },
-          { rpg: "4.9 R/G", wins: "90 W",  label: "Playoff contender" },
-          { rpg: "6.1 R/G", wins: "106 W", label: "Great offense" },
-          { rpg: "7.4 R/G", wins: "123 W", label: "Historic lineup" },
-          { rpg: "9.4 R/G", wins: "149 W", label: "All-time ultimate" },
+          { rpg: "5.0 R/G", wins: "95 W",  label: "Playoff contender" },
+          { rpg: "6.0 R/G", wins: "112 W", label: "Great offense" },
+          { rpg: "7.5 R/G", wins: "137 W", label: "Historic lineup" },
+          { rpg: "9.4 R/G", wins: "162 W", label: "The holy grail 🏆" },
         ],
       },
       wins: {
@@ -332,14 +332,14 @@ const T = {
         ],
         formulaTitle: "Formule de victoires",
         formula: "victoires = 50 + (points_par_match − 4.0) × 14",
-        formulaNote: "Calé sur la vraie MLB : une équipe moyenne marque 4.19 pts/match → 81 victoires. Chaque point supplémentaire ajoute ~13 victoires. Les Dodgers 2022 feraient ~4.9 pts/match → ~91 victoires.",
+        formulaNote: "Calé sur la vraie MLB : une équipe moyenne marque 4.19 pts/match → 81 victoires. Chaque point supplémentaire ajoute ~17 victoires. 162-0 est le Graal — atteignable uniquement avec le lineup parfait ET le bon ordre de frappe. La plupart des lineups élites atteignent 155-160 victoires.",
         examplesTitle: "Références",
         examples: [
           { rpg: "4.2 pts/m", wins: "81 V",  label: "Équipe MLB moyenne" },
-          { rpg: "4.9 pts/m", wins: "90 V",  label: "Niveau playoffs" },
-          { rpg: "6.1 pts/m", wins: "106 V", label: "Grande attaque" },
-          { rpg: "7.4 pts/m", wins: "123 V", label: "Lineup historique" },
-          { rpg: "9.4 pts/m", wins: "149 V", label: "Lineup ultime" },
+          { rpg: "5.0 pts/m", wins: "95 V",  label: "Niveau playoffs" },
+          { rpg: "6.0 pts/m", wins: "112 V", label: "Grande attaque" },
+          { rpg: "7.5 pts/m", wins: "137 V", label: "Lineup historique" },
+          { rpg: "9.4 pts/m", wins: "162 V", label: "Le Graal 🏆" },
         ],
       },
       wins: {
@@ -501,14 +501,14 @@ const T = {
         ],
         formulaTitle: "Fórmula de victorias",
         formula: "victorias = 50 + (carreras_por_partido − 4.0) × 14",
-        formulaNote: "Calibrado con la MLB real: un equipo promedio anota 4.19 C/P → 81 victorias. Cada carrera extra añade ~13 victorias. Los Dodgers 2022 harían ~4.9 C/P → ~91 victorias.",
+        formulaNote: "Calibrado con la MLB real: un equipo promedio anota 4.19 C/P → 81 victorias. Cada carrera extra añade ~17 victorias. 162-0 es el objetivo supremo — solo alcanzable con el lineup perfecto Y el batting order perfecto. La mayoría de lineups élite llegan a 155-160 victorias.",
         examplesTitle: "Referencias",
         examples: [
           { rpg: "4.2 C/P", wins: "81 V",  label: "Equipo MLB promedio" },
-          { rpg: "4.9 C/P", wins: "90 V",  label: "Nivel playoffs" },
-          { rpg: "6.1 C/P", wins: "106 V", label: "Gran ataque" },
-          { rpg: "7.4 C/P", wins: "123 V", label: "Lineup histórico" },
-          { rpg: "9.4 C/P", wins: "149 V", label: "Lineup definitivo" },
+          { rpg: "5.0 C/P", wins: "95 V",  label: "Nivel playoffs" },
+          { rpg: "6.0 C/P", wins: "112 V", label: "Gran ataque" },
+          { rpg: "7.5 C/P", wins: "137 V", label: "Lineup histórico" },
+          { rpg: "9.4 C/P", wins: "162 V", label: "El santo grial 🏆" },
         ],
       },
       wins: {
@@ -734,7 +734,7 @@ function simulateSeason(lineup) {
   }
 
   const rpg  = totalRuns / 162;
-  const wins = isNaN(rpg) ? 0 : Math.min(162, Math.max(0, Math.round(81 + (rpg - 4.19) * 13)));
+  const wins = isNaN(rpg) ? 0 : Math.min(162, Math.max(0, Math.round(81 + (rpg - 4.19) * 17)));
 
   const playerStats = lineup.map((p, i) => {
     const s = stats[i];
@@ -1012,6 +1012,14 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
             ...S.btn("linear-gradient(135deg,#dc2626,#991b1b)"),
             width:"100%",fontSize:17,padding:"16px",borderRadius:12,
           }}>{t.playBall}</button>
+
+          {/* Disclaimer */}
+          <div style={{marginTop:20,textAlign:"center",fontSize:10,
+            color:th.textGhost,lineHeight:1.6,padding:"0 8px"}}>
+            This is an independent fan project. Not affiliated with, endorsed by,
+            or connected to Major League Baseball (MLB) or any of its teams.
+            Player stats sourced from public historical records.
+          </div>
         </div>
       )}
 
