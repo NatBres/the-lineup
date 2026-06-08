@@ -106,6 +106,13 @@ const T = {
     hofSaved: "✓ Saved!",
     hofClear: "Clear",
     anecdoteTitle: "Did you know?",
+    tabLeaders: "Leaders",
+    tabSeason:  "Stats",
+    tabCareer:  "Career",
+    lbYou:      "← YOU",
+    lbRefresh:  "↺ Refresh",
+    lbRetry:    "Retry",
+
     lbTitle: "🌍 Global Leaderboard",
     lbEnterName: "Enter your name",
     lbNamePlaceholder: "Your name (max 15 chars)",
@@ -275,6 +282,13 @@ const T = {
     hofSaved: "✓ Sauvegardé !",
     hofClear: "Effacer",
     anecdoteTitle: "Le savais-tu ?",
+    tabLeaders: "Leaders",
+    tabSeason:  "Stats",
+    tabCareer:  "Carrière",
+    lbYou:      "← MOI",
+    lbRefresh:  "↺ Actualiser",
+    lbRetry:    "Réessayer",
+
     lbTitle: "🌍 Classement mondial",
     lbEnterName: "Entre ton nom",
     lbNamePlaceholder: "Ton pseudo (15 max)",
@@ -444,6 +458,13 @@ const T = {
     hofSaved: "✓ ¡Guardado!",
     hofClear: "Borrar",
     anecdoteTitle: "¿Sabías que?",
+    tabLeaders: "Líderes",
+    tabSeason:  "Stats",
+    tabCareer:  "Carrera",
+    lbYou:      "← TÚ",
+    lbRefresh:  "↺ Actualizar",
+    lbRetry:    "Reintentar",
+
     lbTitle: "🌍 Clasificación mundial",
     lbEnterName: "Introduce tu nombre",
     lbNamePlaceholder: "Tu nombre (máx 15 car.)",
@@ -678,8 +699,8 @@ function simulateSeason(lineup) {
       const avg    = Number(b.avg) || 0;
       const sbProp = Number(b.sb)  || 0;
 
-      const netPower = Math.max(0, slg - avg - 0.12);
-      const p_hr     = Math.pow(netPower, 1.3) * 0.55;
+      const netPower = Math.max(0, slg - avg - 0.06);
+      const p_hr     = Math.pow(netPower, 1.4) * 0.50;
       const p_walk   = obp * 0.283;
       const p_double = avg * 0.195;
       const p_single = avg * 0.638;
@@ -1032,14 +1053,14 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
             </div>
             <button onClick={loadBoard} style={{
               ...S.ghostBtn, fontSize:11,
-            }}>↺ Refresh</button>
+            }}>{t.lbRefresh}</button>
           </div>
 
           {lbLoading ? (
             <div style={{textAlign:"center",padding:"48px 0",color:th.textDim}}>
               <div style={{fontSize:32,marginBottom:10,
                 display:"inline-block",animation:"spin 0.8s linear infinite"}}>⚾</div>
-              <div style={{fontSize:13,letterSpacing:1}}>Loading...</div>
+              <div style={{fontSize:13,letterSpacing:1}}>{t.loading}</div>
               <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
             </div>
           ) : lbError ? (
@@ -1049,7 +1070,7 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
               <button onClick={loadBoard} style={{
                 padding:"10px 20px",borderRadius:8,border:"none",
                 background:"#dc2626",color:"#fff",cursor:"pointer",fontSize:13,
-              }}>Retry</button>
+              }}>{t.lbRetry}</button>
             </div>
           ) : board.length === 0 ? (
             <div style={{textAlign:"center",padding:"60px 0",color:th.textMuted}}>
@@ -1693,7 +1714,7 @@ function ResultPhase({ lineup, simResult, lang, setLang, theme, setTheme, showHt
               color:tab===key?"#fff":th.textMuted,
               fontSize:12, fontWeight:tab===key?700:400,
               cursor:"pointer", touchAction:"manipulation", transition:"all 0.15s",
-            }}>{icon} {key==="leaders"?"Leaders":key==="season"?"Stats":"Career"}</button>
+            }}>{icon} {key==="leaders"?t.tabLeaders:key==="season"?t.tabSeason:t.tabCareer}</button>
           ))}
         </div>
 
@@ -1966,7 +1987,7 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
               <div style={{textAlign:"center",padding:"48px 0",color:th.textDim}}>
                 <div style={{fontSize:32,marginBottom:10,
                   display:"inline-block",animation:"spin 0.8s linear infinite"}}>⚾</div>
-                <div style={{fontSize:13,letterSpacing:1}}>Loading...</div>
+                <div style={{fontSize:13,letterSpacing:1}}>{t.loading}</div>
                 <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
               </div>
             ) : error ? (
@@ -1976,7 +1997,7 @@ function LeaderboardScreen({ t, th, wins, rpg, lineup, onClose }) {
                 <button onClick={loadBoard} style={{
                   padding:"10px 20px",borderRadius:8,border:"none",
                   background:"#dc2626",color:"#fff",cursor:"pointer",fontSize:13,
-                }}>Retry</button>
+                }}>{t.lbRetry}</button>
               </div>
             ) : board.length === 0 ? (
               <div style={{textAlign:"center",padding:"40px 0",color:th.textMuted,fontSize:14}}>
