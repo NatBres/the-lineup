@@ -661,35 +661,42 @@ function simulateSeason(lineup) {
       const avg    = Number(b.avg)    || 0;
       const bbRate = Number(b.bbRate) || 0;
       const sbProp = Number(b.sb)     || 0;
+
+      // Dynamic hit coefficient so simulated AVG ≈ real career AVG
+      // Remaining PA probability after walks, HRs, extra walks → split into hits + outs
+      const pWalk  = obp * 0.22;
+      const pHR    = slg * 0.10;
+      const pXwalk = bbRate * 0.008;
+      const hitCoeff = Math.min((1 - pWalk - pHR - pXwalk) * 0.84, 0.85);
+
       const r = Math.random();
 
       st.PA++;
 
-      if (r < obp * 0.22) {
+      if (r < pWalk) {
         // Walk / HBP — no AB
         st.BB++;
         const scored = bases[2] ? 1 : 0;
         if (bases[2]) { stats[bases[2]-1].R++; totalRuns++; }
         bases = [idx+1, bases[0], bases[1]];
 
-      } else if (r < obp*0.22 + slg*0.10) {
-        // Home run — batter + all on base score
+      } else if (r < pWalk + pHR) {
+        // Home run
         st.AB++; st.H++; st.HR++;
         const onBase = bases.filter(Boolean).length;
         st.RBI += onBase + 1;
         st.R++;
         totalRuns += onBase + 1;
-        // Score all baserunners
         bases.forEach(slot => { if (slot) { stats[slot-1].R++; } });
         bases = [0,0,0];
 
-      } else if (r < obp*0.22 + slg*0.10 + avg*0.35) {
+      } else if (r < pWalk + pHR + avg * hitCoeff) {
         // Single
         st.AB++; st.H++;
         if (bases[2]) { stats[bases[2]-1].R++; totalRuns++; st.RBI++; }
         bases = [idx+1, bases[0], bases[1]];
 
-      } else if (r < obp*0.22 + slg*0.10 + avg*0.35 + bbRate*0.008) {
+      } else if (r < pWalk + pHR + avg * hitCoeff + pXwalk) {
         // Extra walk
         st.BB++;
         if (bases[2]) { stats[bases[2]-1].R++; totalRuns++; }
@@ -699,10 +706,9 @@ function simulateSeason(lineup) {
         // Out
         st.AB++;
         outs++;
-        // Stolen base attempt if runner on 1st
         if (Math.random() < sbProp / 1500 && bases[0]) {
           st.SB++;
-          bases = [0, bases[0], bases[1]]; // advance to 2nd
+          bases = [0, bases[0], bases[1]];
         }
       }
       bi++;
