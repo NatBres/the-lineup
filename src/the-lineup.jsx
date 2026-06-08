@@ -1039,6 +1039,24 @@ function IntroPhase({ onStart, lang, setLang, theme, setTheme, showHtp, showFeed
             color:th.textGhost,lineHeight:1.6,padding:"0 8px"}}>
             {t.disclaimerText}
           </div>
+
+          {/* Contact line */}
+          <div style={{marginTop:8,textAlign:"center",fontSize:10,
+            color:th.textGhost,display:"flex",alignItems:"center",
+            justifyContent:"center",gap:8,flexWrap:"wrap"}}>
+            <span>Built by Nathan Brès</span>
+            <span>·</span>
+            <a href="mailto:nathanbs48@gmail.com"
+              style={{color:th.textGhost,textDecoration:"none"}}>
+              nathanbs48@gmail.com
+            </a>
+            <span>·</span>
+            <a href="https://ie.linkedin.com/in/nathan-br%C3%A8s/en"
+              target="_blank" rel="noopener noreferrer"
+              style={{color:th.textGhost,textDecoration:"none"}}>
+              LinkedIn
+            </a>
+          </div>
         </div>
       )}
 
